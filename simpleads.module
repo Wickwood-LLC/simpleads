@@ -1,0 +1,78 @@
+<?php
+/*
+Database definition:
+CREATE TABLE simpleads (
+  nid int(11) unsigned default '0',
+  url varchar(255) default NULL,
+  message varchar(255) default NULL,
+  image mediumblob DEFAULT '' NOT NULL,
+  uid int(10) unsigned default '0',
+  timestamp int(11) unsigned NOT NULL default '0'
+) TYPE=MyISAM;
+
+
+*/
+
+
+function simpleads_system($field) {
+  $system["description"] = t("A module to display some ads in a block on your site.");
+  return $system[$field];
+}
+
+function simpleads_block($op = "list", $delta = 0) {
+  if ($op == "list") {
+    $blocks[0]["info"] = t("Ads");
+    return $blocks;
+  }
+  else {
+    switch($delta) {
+      case 0:
+        $block["subject"] = t("Ads");
+        $block["content"] = simpleads_showads();
+        break;
+    }
+    return $block;
+  }
+}
+
+function simpleads_perm() {
+  return array("administer ads, post ads");
+}
+
+function simpleads_link($type, $node) {
+//   if ($type == "admin" && user_access("administer logos")) {
+//     $links[] = la(t("logo"), array("mod" => "logo"));
+//   }
+  return $links;
+}  
+
+function simpleads_showad() {
+  return ;
+}
+
+function simpleads_admin() {
+  global $op, $edit;
+
+  if (user_access("administer ads")) {
+    $links[] = la(t("help"), array("mod" => "logo", "op" => "help"));
+  }
+  else {
+    print message_access();
+  }
+}
+
+function simpleads_conf_options() {
+  global $edit;
+  
+  $output  = form_textfield("Directory", "simpleads_dir", variable_get("simpleads_dir", "images/"), 30, 255, "Directory where your ads are stored. The path is relative to your drupal installation. Don't forget the slash at the end.");
+  //  $output .= form_textfield("Logo image for other pages", "simpleads_default_image", variable_get("simpleads_default_image", "images/logo2.png"), 30, 255, "Image file to be used as logo on other pages. The path is relative to your drupal installation.");
+  return $output;
+}  
+
+function simpleads_help() {
+  $output  = t("You'll need to apply the patches in contrib-cvs/sandbox/killes/blocks and execute the sql query found there in order to use this module. You will also need a theme that supports an ads-block.");
+  //  $output .= t("This module provides two blocks containing the site's logo. The first block is meant to be shown on index.php, the second on all other pages. So you can a big flashy logo on your first page and a more decent and less screen estate consuming one on other pages.");
+  //  $output .= t("You'll need to configure this module's blocks in the block admin menu. Use the path entry in the config settings to display the first logo block if the user is on index.php by setting it to index\.php and the other logo block on every other page by setting the path to (node\.php\|module\.php).");
+  return $output;
+}  
+?>
