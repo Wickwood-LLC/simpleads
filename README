@@ -1,3 +1,10 @@
+
+WARNING: This module currently does not work. Developers welcome.
+
+
+
+
+
 How the module should work with cached pages. (by Jeremy Andrews)
 
 In the ad_init function, we will do a few simple things:
