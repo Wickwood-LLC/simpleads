@@ -61,7 +61,7 @@ function simpleads_admin() {
   }
 }
 
-function simpleads_conf_options() {
+function simpleads_settings() {
   global $edit;
   
   $output  = form_textfield("Directory", "simpleads_dir", variable_get("simpleads_dir", "images/"), 30, 255, "Directory where your ads are stored. The path is relative to your drupal installation. Don't forget the slash at the end.");
