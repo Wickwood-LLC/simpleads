@@ -1,0 +1,124 @@
+How the module should work with cached pages. (by Jeremy Andrews)
+
+In the ad_init function, we will do a few simple things:
+
+1) hash the uri to a number H from 0-n.  
+   Explanation: 'n' is the number of different active ads.  For example,
+if 'n' equals one, then the same ad will be displayed on all pages.  I
+think setting 'n' to '10' would be sufficient in most cases, and would
+never need to be set to more than '100' on even the most demanding sites. 
+The idea is to shuffle things enough that if one person navigates 3 pages,
+he sees 3 different ads.  However if 3 different people hit the same page,
+it's fine if all 3 see the same ad.
+
+ 2) if 'H' does not currently have an ad associated to it, we call the
+logic to set this up
+    Explanation: say the URI "mysite.com/index.php" hashes to 7.  We
+verify that /ad/7.png is a symbolic link to a real ad.  If not, we call
+the function that figures out which ad should be here and sets it up for
+us.  All said and done, "mysite.com/index.php" will have a link to the ad
+that looks like:
+   "mysite.com/module.php?mod=ad&op=click&id=7"
+This link will NEVER change for this page, as its URI will always hash to
+7.
+
+ 3) else, roll an 'x' sided die.  If 'x' is 0, call the logic to switch
+ads for 'n'.
+    That is, most of the time we do nothing.  But if the ad has been
+viewed enough times, it's time to choose a new ad.  Choosing a new ad does
+not change the link, it just changes the internal "adID" mapping and the
+symbolic link.  This should be clearer in the examples below.
+
+
+Okay, so take a look at this in action:
+
+ 1) We view page:  mysite.com/index.php
+
+ 2) ad_init hashes this URI to "7".
+
+ 3) ad_init calls ad_verify(7) to see if a symbolic link exists for 7.
+
+ 4) ad_verify sees that 7 does not exist, so it calls ad_setup(7).
+
+ 5) ad_setup calls ad_next() which calculates/returns the ID of the next
+    ad that should be displayed, in this case 42
+
+ 6) ad_setup calls ad_link(7,42) which creates a symbolic link from 7 to
+     the real image associated with adID42.
+
+ 7) ad_setup stores (7 => 42) in the adID variable, which now looks like:
+     0,0,0,0,0,0,42,0,0
+
+ 8) ad_setup sets a global "$ad_current_id = 42"  (This is to simplify the
+    logic when logging from the statistics module - we already know the
+    value, so no sense in making the statistics module figure it out)
+
+ 9) the statistics_init function populates the new adID column in the
+    access log with "42", so we conclusively know that ad 42 was displayed
+    when this page was viewed.
+
+-=-=-
+
+Let's load the page a second time:
+
+ 1) We view the page again:  mysite.com/index.php
+
+ 2) ad_init hashes this URI to "7".
+
+ 3) ad_init calls ad_verify(7) to see if a symbolic link exists for 7.
+
+ 4) ad_verify sees that 7 already exists, returns 0.
+
+ 5) ad_init "rolls a die" and decides the ad will not change
+
+ 6) ad_init sets global "$ad_current_id = $adID[7]", which is of course
+    42.
+
+ 8) the statistics_init function populates the new adID column in the
+    access log with "42", so we conclusively know that ad 42 was displayed
+    when this page was viewed.
+
+-=-=-
+
+Now lets load the page a third time:
+
+ 1) We view the page again:  mysite.com/index.php
+
+ 2) ad_init hashes this URI to "7".
+
+ 3) ad_init calls ad_verify(7) to see if a symbolic link exists for 7.
+
+ 4) ad_verify sees that 7 already exists, returns 0.
+
+ 5) ad_init "rolls a die" and thanks to the laws of probability knows this
+    ad has been displayed enough times (it rolls a 0), so it makes a call
+    to ad_next() which calculates/returns the ID of the next ad that
+    should be displayed, in this case 13
+
+ 6) ad_init calls ad_link(7,13) which updates the symbolic link which is
+    now from 7 to the real image associated with adID13.
+
+ 7) ad_setup stores (7 => 13) in the adID variable, which now looks like:
+     0,0,0,0,0,0,13,0,0
+
+ 8) ad_setup sets a global "$ad_current_id = 13"
+
+ 9) the statistics_init function populates the new adID column in the
+    access log with "13", so we conclusively know that ad 13 was displayed
+    when this page was viewed.
+
+-=-=-=-
+
+Finally, let's click the ad link and see what happens:
+
+ 1) We are sent to the following URL:
+      mysite.com/module.php?mod=ad&op=click&id=7
+
+ 2) Here we retreive adID[7] which in this case equals 13
+
+ 3) We store that adID[13] has been clicked and any other info that could
+    be conceived as valuable to the advertiser (timestamp, referrer
+    (nid/mod/etc?), userID (same user over and over?), etc...
+
+ 4) We redirect the user to the URL associated with adID[13]
+
