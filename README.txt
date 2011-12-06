@@ -29,7 +29,7 @@ and expiration.
 hours, one day, one week, one month, 3 months, 6 months, 1 year,
 and all time.
 
-- Generates live ad statistics report
+- Generates live ad statistics report.
 
 - Ad blocks can be themed
 
