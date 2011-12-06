@@ -1,0 +1,769 @@
+<?php
+
+/**
+ * @file
+ * SimpleAds module.
+ */
+  
+/**
+ * Implements hook_menu().
+ */
+function simpleads_menu() {
+  $items = array();
+    
+  $items['simpleads/load/%/%'] = array(
+    'title' => 'Display Ads',
+    'page callback' => '_simpleads_show_ads',
+    'page arguments' => array(2, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+    
+  $items['admin/content/simpleads/%/stat'] = array(
+    'title' => 'Ad Statistics',
+    'page callback' => '_simpleads_stat_tab',
+    'page arguments' => array(3),
+    'access arguments' => array('access ad statistics'),
+    'weight' => 15,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'simpleads.stat.inc',
+  );
+    
+  $items['admin/content/simpleads'] = array(
+    'title' => 'Ads List',
+    'page callback' => '_simpleads_listing',
+    'access arguments' => array('access ad statistics'),
+    'weight' => 15,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'simpleads.stat.inc',
+  );
+    
+  $items['admin/content/simpleads/create_ad'] = array(
+    'title' => 'Create new Ad',
+    'page callback' => '_simpleads_new_add',
+    'access callback' => '_simpleads_access_callback',
+    'weight' => 15,
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'simpleads.stat.inc',
+  );
+    
+  $items['simpleads/redirect/%'] = array(
+    'title' => 'Redirect Ads',
+    'page callback' => '_simpleads_redirect',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['simpleads/dashboard/%'] = array(
+    'title' => 'SimpleAds Filter',
+    'description' => 'Filter Dashboard',
+    'page callback' => '_simpleads_filter_dashboard_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'page arguments' => array(2),
+    'theme callback' => '_simpleads_filter_dashboard_theme',
+  );
+    
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function simpleads_permission() {
+  return array(
+    'access ad statistics' => array(
+      'title' => t('Access ad statistics'),
+    ),
+    'access ad nodes' => array(
+      'title' => t('Access ad nodes'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function simpleads_node_access($node, $op, $account) {
+  if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('access ad nodes', $account)) {
+    return NODE_ACCESS_DENY;
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function simpleads_node_presave($node) {
+  if ($node->type == 'simpleads') {
+    $start_time = 0;
+	$end_time = 0;
+	
+	if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
+      $start_time = $node->field_ad_start_date[$node->language][0]['value'];
+	}
+	if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
+      $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+	}
+        
+    $start_time = strtotime($start_time);
+    $end_time = strtotime($end_time);
+        
+    if ($start_time != 0) {
+      $node->field_ad_start_date[$node->language][0]['value'] = format_date($start_time, 'custom', 'm/d/Y h:i a');
+    }
+    if ($end_time != 0) {
+      $node->field_ad_end_date[$node->language][0]['value'] = format_date($end_time, 'custom', 'm/d/Y h:i a');
+    }
+    _simpleads_activate_deactive_ad($node, 'presave');
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function simpleads_node_delete($node) {
+  if ($node->type == 'simpleads') {
+    _simpleads_delete_click($node->nid);
+    _simpleads_delete_impression($node->nid);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_insert().
+ */
+function simpleads_taxonomy_term_insert($term) {
+  if ($term->vocabulary_machine_name == 'ad_groups') {
+  
+    $ad_group_name = $term->name;
+    $tid = $term->tid;
+    $block_delta = $term->vocabulary_machine_name . '_' . $tid;
+  
+    $settings = array(
+      'ads_limit' => 1,
+      'ads_width' => '',
+      'ads_height' => '',
+      'block_info' => $ad_group_name,
+      'block_subject' => t('Advertisement'),
+      'block_delta' => $block_delta,
+      'ads_page' => '',
+    );
+  
+    db_insert('simpleads_blocks')
+    ->fields(array(
+      'tid' => $tid,
+      'settings' => serialize($settings),
+    ))
+    ->execute();
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ */
+function simpleads_taxonomy_term_delete($term) {
+  db_delete('simpleads_blocks')->condition('tid', $term->tid)->execute();
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function simpleads_block_info() {
+  $blocks = array();
+  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  while ($adblock = $all_blocks->fetchAssoc()) {
+    $data = unserialize($adblock['settings']);
+    $blocks[$data['block_delta']] = array(
+      'info' => t('Advertisement Block: @name', array('@name' => $data['block_info'])),
+      'cache' => DRUPAL_NO_CACHE,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function simpleads_block_view($delta = '') {
+  $block = array();
+  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  while ($adblock = $all_blocks->fetchAssoc()) {
+    $data = unserialize($adblock['settings']);
+    if ($data['block_delta'] == $delta) {
+      $block = array(
+        'subject' => check_plain($data['block_subject']),
+        'content' => theme('simpleads_block', array(
+          'tid' => $adblock['tid'], 
+          'ads_limit' => $data['ads_limit'], 
+          'ads_page' => $data['ads_page'], 
+          'ads_width' => $data['ads_width'], 
+          'ads_height' => $data['ads_height'])
+        ),
+      );
+    }
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function simpleads_block_configure($delta = '') {
+  $form = array();
+  
+  $options = array();
+  for ($i = 1; $i < 11; $i++) {
+    $options[$i] = $i;
+  }
+  
+  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  while ($adblock = $all_blocks->fetchAssoc()) {
+    $data = unserialize($adblock['settings']);
+    if ($data['block_delta'] == $delta) {
+      $form['ads_limit'] = array(
+        '#type' => 'select',
+        '#title' => t('Number of ads to display'),
+        '#default_value' => $data['ads_limit'],
+        '#options' => $options,
+      );
+      $form['ads_page'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Advertise page'),
+        '#default_value' => $data['ads_page'],
+      );
+      $form['ads_width'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Ad width'),
+        '#default_value' => $data['ads_width'],
+      );
+      $form['ads_height'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Ad height'),
+        '#default_value' => $data['ads_height'],
+      );
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function simpleads_block_save($delta = '', $edit = array()) {
+  
+  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  while ($adblock = $all_blocks->fetchAssoc()) {
+    $data = unserialize($adblock['settings']);
+    if ($data['block_delta'] == $delta) {
+      $data['ads_limit'] = $edit['ads_limit'];
+      $data['ads_page'] = $edit['ads_page'];
+      $data['ads_width'] = $edit['ads_width'];
+      $data['ads_height'] = $edit['ads_height'];
+  
+      db_update('simpleads_blocks')
+      ->fields(array(
+        'settings' => serialize($data),
+      ))
+      ->condition('tid', $adblock['tid'])
+      ->execute();
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function simpleads_cron() {
+    
+  $ads = db_select('node', 'n')->fields('n')
+  ->condition('n.type', 'simpleads')
+  ->execute();
+    
+  foreach ($ads as $ad) {
+    $node = node_load($ad->nid);
+    _simpleads_activate_deactive_ad($node);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simpleads_theme($existing, $type, $theme, $path) {
+  return array(
+    'simpleads_block' => array(
+      'variables' => array('tid' => NULL, 'prefix' => NULL, 'ads_limit' => NULL, 'ads_page' => NULL, 'ads_width' => NULL, 'ads_height' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_block',
+      'preprocess functions' => array(
+        'simpleads_preprocess_simpleads_block',
+      ),
+    ),
+    'simpleads_img_element' => array(
+      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_img_element',
+    ),
+    'simpleads_filter_dashboard' => array(
+      'variables' => array('form' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_filter_dashboard',
+    ),
+  );
+}
+
+/**
+ * Preprocess for simpleads_block.tpl.php
+ */
+function simpleads_preprocess_simpleads_block(&$vars) {
+  global $user;
+  $ads = array();
+  
+  $tid = $vars['tid'];
+  $limit = $vars['ads_limit'];
+  
+  if (is_numeric($tid)) {
+    $ads = _simpleads_load_ads($tid, $limit);
+  }
+  $vars['ads'] = $ads;
+  $vars['user_id'] = $user->uid;
+}
+
+/**
+ * Menu access callback.
+ */
+function _simpleads_access_callback() {
+  global $user;
+  if (user_access('create simpleads content') || (user_access('administer content') && user_access('bypass node access'))) {
+    return TRUE;
+  }
+}
+
+/**
+ * Helper function.
+ *
+ * @param $tid
+ *   Term ID (Ad group ID)
+ *
+ * @param $limit
+ *   Numer of ads to return.
+ *
+ * @return
+ *   Returns array of Ads.
+ */
+function _simpleads_load_ads($tid, $limit) {
+
+  $result = array();
+  $term_ids = array();
+  
+  if (is_array($tid))
+    $term_ids = $tid;
+  else
+    $term_ids[] = $tid;
+    
+  if (is_numeric($limit)) {
+        
+    $query = db_select('node', 'n');
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'))
+    ->orderRandom()
+    ->range(0, $limit);
+  
+    $results = $query->execute();
+
+    while ($record = $results->fetchAssoc()) {
+      $node = node_load($record['nid']);
+      $image = file_create_url($node->field_ad_image[$node->language][0]['uri']);
+      $alt = $node->field_ad_image[$node->language][0]['alt'];
+      _simpleads_save_impression($node->nid);
+      $result[] = array(
+        'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
+        'image' => $image,
+        'alt' => $alt,
+        'nid' => $node->nid,
+      );
+    }
+  }
+  return $result;
+}
+
+/**
+ * Callback for AJAX call. Returns list of ads.
+ *
+ * @param $tid
+ *   Term ID (Ad group ID)
+ *
+ * @param $limit
+ *   Number of Ads to retreive.
+ *
+ * @return
+ *   HTML tags (<a href><img></a>).
+ */
+function _simpleads_show_ads($tid, $limit) {
+  $result = "";
+  if (is_numeric($tid)) {
+    $get_ads = _simpleads_load_ads($tid, $limit);
+    foreach ($get_ads as $ad) {
+      $ad_block = db_select('simpleads_blocks', 'sb')->fields('sb', array('settings'))->condition('sb.tid', $tid)->execute()->fetchField();
+      $ad_setting = unserialize($ad_block);
+      $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting));
+    }
+  }
+  print $result;
+  exit;
+}
+
+/**
+ * Helper function.
+ * Redirect Ads.
+ * If user is Admin -> redirect to Ad edit page, otherwise redirect to target URL.
+ */
+function _simpleads_redirect($nid) {
+  global $user;
+  if (is_numeric($nid)) {
+    $node = node_load($nid);
+    $url = $node->field_ad_url[$node->language][0]['value'];
+    if ($user->uid == 1) {
+      drupal_goto('node/' . $node->nid);
+    }
+    else {
+      _simpleads_save_click($node->nid);
+      header("Location: " . $url);
+    }
+  }
+  return ' ';
+}
+
+/**
+ * Helper function.
+ * Save Ad clicks.
+ */
+function _simpleads_save_click($nid) {
+  db_insert('simpleads_clicks')
+  ->fields(array(
+    'nid' => $nid,
+    'timestamp' => time(),
+    'ip_address' => ip_address(),
+  ))
+  ->execute();
+}
+
+/**
+ * Helper function.
+ * Delete Ad clicks.
+ */
+function _simpleads_delete_click($nid) {
+  db_delete('simpleads_clicks')
+  ->condition('nid', $nid)
+  ->execute();
+}
+
+/**
+ * Helper function.
+ * Save Ad impressions.
+ */
+function _simpleads_save_impression($nid) {
+  db_insert('simpleads_impressions')
+  ->fields(array(
+    'nid' => $nid,
+    'timestamp' => time(),
+    'ip_address' => ip_address(),
+  ))
+  ->execute();
+}
+
+/**
+ * Helper function.
+ * Delete Ad impressions.
+ */
+function _simpleads_delete_impression($nid) {
+  db_delete('simpleads_impressions')
+  ->condition('nid', $nid)
+  ->execute();
+}
+
+/**
+ * Helper function.
+ * Activate/deactive Ads.
+ */
+function _simpleads_activate_deactive_ad($node, $who = 'cron') {
+  $start_time = '';
+  $end_time = '';
+  
+  if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
+    $start_time = $node->field_ad_start_date[$node->language][0]['value'];
+  }
+  if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
+    $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+  }
+    
+  $start_time = (int)strtotime($start_time);
+  $end_time = (int)strtotime($end_time);
+    
+  $now = time();
+    
+  if ($start_time != '' && $end_time != '') {
+        
+    if ($now >= $start_time && $end_time > $now) {
+      $node->status = 1;
+      if ($who == 'cron') {
+        node_save($node);
+      }
+    }
+    elseif ($end_time <= $now) {
+      $node->status = 0;
+      if ($who == 'cron') {
+        node_save($node);
+      }
+    }
+  }
+  elseif ($start_time == '' && $end_time != '') {
+        
+    if ($end_time <= $now) {
+      $node->status = 0;
+      if ($who == 'cron') {
+        node_save($node);
+      }
+    }
+    else {
+      $node->status = 1;
+      if ($who == 'cron') {
+        node_save($node);
+      }
+    }
+  }
+  else {
+        
+    if ($now >= $start_time && $start_time != '') {
+      $node->status = 1;
+        if ($who == 'cron') {
+          node_save($node);
+        }
+    }
+  }
+  if ($who != 'cron') {
+    return $node;
+  }
+}
+
+/**
+ * Implements hook_filter_info().
+ */
+function simpleads_filter_info() {
+  $filters = array();
+  $filters['simpleads'] = array(
+    'title' => t('SimpleAds Filter'),
+    'description' => t('Substitutes [ads:TID limit:N] with Ad block.'),
+    'process callback' => '_simpleads_filter_process',
+    'tips callback' => '_simpleads_filter_tips',
+    'weight' => -1,
+  );
+  return $filters;
+}
+
+/**
+ * Filter Process callback.
+ */
+function _simpleads_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  if (preg_match_all('/\[ads(\:(.+))?( .+)?\]/isU', $text, $matches_code)) {
+    foreach ($matches_code[0] as $ci => $code) {
+      $ad = array(
+        'tid' => $matches_code[2][$ci],
+      );
+      if ($matches_code[3][$ci] && preg_match_all('/\s+([a-zA-Z_]+)\:(\s+)?([0-9a-zA-Z\/]+)/i', $matches_code[3][$ci], $matches_attributes)) {
+        foreach ($matches_attributes[0] AS $key => $attribute) {
+          $ad[$matches_attributes[1][$key]] = $matches_attributes[3][$key];
+        }
+      }
+      // Injecting an Ad into content.
+      $content_ad = theme('simpleads_block', array('tid' => $ad['tid'], 'prefix' => 'content-' . $ci, 'ads_limit' => $ad['limit'], 'ads_page' => $ad['ads_page'], 'ads_width' => $ad['width'], 'ads_height' => $ad['height']));
+      $pattern = str_replace(array('[', ']'), array('\[', '\]'), $matches_code[0][$ci]);
+      $text = preg_replace('/' . $pattern . '/is', $content_ad, $text);
+    }
+  }
+
+  return $text;
+}
+
+/**
+ * Filter Tips callback.
+ */
+function _simpleads_filter_tips($filter, $format, $long = FALSE) {
+  return t('You may insert Ads with [ads:term_id limit:N] where term_id - Ad Group and N - number of Ads to display');
+}
+
+/**
+ * Implements hook_wysiwyg_plugin().
+ */
+function simpleads_wysiwyg_plugin($editor, $version) {
+
+  _simpleads_filter_add_settings('wysiwyg_' . $editor);
+
+  switch ($editor) {
+    case 'tinymce':
+      $plugins['simpleads'] = array(
+        'path' => drupal_get_path('module', 'simpleads') . '/editors/tinymce',
+        'filename' => 'editor_plugin.js',
+        'buttons' => array('simpleads' => t('SimpleAds')),
+        'load' => TRUE,
+      );
+      break;
+    case 'ckeditor':
+      $plugins['simpleads'] = array(
+        'path' => drupal_get_path('module', 'simpleads') . '/editors/ckeditor/',
+        'buttons' => array('simpleads' => t('SimpleAds')),
+        'load' => TRUE,
+      );
+      break;
+    case 'fckeditor':
+      $plugins['simpleads'] = array(
+        'path' => drupal_get_path('module', 'simpleads') . '/editors/fckeditor/',
+        'buttons' => array('simpleads' => t('SimpleAds')),
+        'load' => TRUE,
+      );
+      break;
+  }
+
+  return $plugins;
+}
+
+/**
+ *	WYSIWYG Popup page.
+ */
+function _simpleads_filter_dashboard_page($editor) {
+
+  module_invoke('admin_menu', 'suppress');
+
+  switch ($editor) {
+    case 'wysiwyg_tinymce':
+      drupal_add_js(wysiwyg_get_path('tinymce') . '/jscripts/tiny_mce/tiny_mce_popup.js');
+      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/tinymce/simpleads_filter.js');
+      break;
+
+    case 'ckeditor':
+    case 'wysiwyg_ckeditor':
+      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/ckeditor/simpleads_filter_dialog.js');
+      break;
+
+    case 'fckeditor':
+    case 'wysiwyg_fckeditor':
+      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/fckeditor/simpleads/simpleads_filter_dialog.js');
+      break;
+  }
+
+  $form = render(drupal_get_form('_simpleads_filter_form'));
+
+  print theme('simpleads_filter_dashboard', array('form' => $form));
+  exit();
+}
+
+/**
+ * Return the theme name to be used when showing linkit dashboard
+ */
+function _simpleads_filter_dashboard_theme() {
+  return variable_get('admin_theme', 'seven');
+}
+
+/**
+ * Template preprocess function for simpleads_filter_dashboard().
+ */
+function template_preprocess_simpleads_filter_dashboard(&$vars) {
+  $vars['head_title'] = t('SimpleAds Filter');
+  $vars['head'] = drupal_get_html_head();
+  $vars['help'] = theme('help');
+  $vars['language'] = $GLOBALS['language'];
+  $vars['language']->dir = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
+  $vars['messages'] = isset($vars['show_messages']) ? theme('status_messages') : '';
+  $vars['css'] = drupal_add_css();
+  $vars['styles'] = drupal_get_css();
+  $vars['scripts'] = drupal_get_js();
+}
+
+/**
+ * SimpleAds Filter form to insert Ads.
+ */
+function _simpleads_filter_form() {
+
+  $form['simpleads_filter'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Insert Ad Block'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => array('clearfix')),
+  );
+  
+  $ad_group_vid = db_select('taxonomy_vocabulary', 'tv')->fields('tv', array('vid'))->condition('machine_name', 'ad_groups')->execute()->fetchField();
+  $results = db_select('taxonomy_term_data', 'td')->fields('td', array('tid', 'name'))->condition('vid', $ad_group_vid)->execute();
+  $terms = array();
+  foreach ($results as $record) {
+    $terms[$record->tid] = check_plain($record->name);
+  }
+  
+  $options = array();
+  for ($i = 1; $i < 11; $i++) {
+    $options[$i] = $i;
+  }
+  
+  $form['simpleads_filter']['tid'] = array(
+    '#type' => 'select',
+    '#title' => t('Ad Group'),
+    '#options' => $terms,
+  );
+
+  $form['simpleads_filter']['num'] = array(
+    '#type' => 'select',
+    '#title' => t('Number of Ads to Display'),
+    '#options' => $options,
+  );
+
+  $form['insert'] = array(
+    '#type' => 'button',
+    '#value' => t('Insert'),
+    '#attributes' => array('style' => 'margin-right: 5px;'),
+  );
+
+  $form['cancel'] = array(
+    '#type' => 'button',
+    '#value' => t('Cancel'),
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function simpleads_element_info_alter(&$types) {
+  if (isset($types['text_format']['#pre_render']) && is_array($types['text_format']['#pre_render'])) {
+    if (in_array('ckeditor_pre_render_text_format', $types['text_format']['#pre_render'])) {
+      _simpleads_filter_add_settings('ckeditor');  
+    }
+  }
+}
+
+/**
+ * SimpleAds Filter global JS variables.
+ */
+function _simpleads_filter_add_settings($editor) {
+  static $editor_settings_added = array();
+  static $global_settings_added = FALSE;
+
+  if (!isset($editor_settings_added[$editor])) {
+    $editor_settings_added[$editor] = TRUE;
+    $settings = array(
+      'simpleads' => array('url' => array($editor => url('simpleads/dashboard/' . $editor))),
+    );
+    drupal_add_js($settings, 'setting');
+  }
+
+  if (!$global_settings_added) {
+    $global_settings_added = TRUE;
+    $settings = array(
+      'simpleads' => array(
+        'modulepath' => drupal_get_path('module', 'simpleads'),
+      ),
+    );
+    drupal_add_js($settings, 'setting');
+  }
+}

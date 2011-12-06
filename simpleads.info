@@ -1,0 +1,7 @@
+name = "Simple Ads"
+description = "Advertisements"
+core = "7.x"
+
+scripts[] = simpleads.js
+
+dependencies[] = taxonomy
