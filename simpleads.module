@@ -79,6 +79,12 @@ function simpleads_permission() {
     'access ad nodes' => array(
       'title' => t('Access ad nodes'),
     ),
+    'count ad impressions' => array(
+      'title' => t('Count ad impressions'),
+    ),
+    'count ad clicks' => array(
+      'title' => t('Count ad clicks'),
+    ),
   );
 }
 
@@ -388,7 +394,10 @@ function _simpleads_load_ads($tid, $limit) {
         $image_uri = $node->field_ad_image[$node->language][0]['uri'];
       }
 
-      _simpleads_save_impression($node->nid);
+      // Count impressions
+      if (user_access('count ad impressions')) {
+        _simpleads_save_impression($node->nid);
+      }
 
       $result[] = array(
         'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
@@ -442,7 +451,9 @@ function _simpleads_redirect($nid) {
       drupal_goto('node/' . $node->nid);
     }
     else {
-      _simpleads_save_click($node->nid);
+      if (user_access('count ad clicks')) {
+        _simpleads_save_click($node->nid);
+      }
       header("Location: " . $url);
     }
   }
