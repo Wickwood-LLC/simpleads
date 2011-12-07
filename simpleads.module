@@ -97,14 +97,14 @@ function simpleads_node_access($node, $op, $account) {
 function simpleads_node_presave($node) {
   if ($node->type == 'simpleads') {
     $start_time = 0;
-	$end_time = 0;
-	
-	if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
+    $end_time = 0;
+
+    if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
       $start_time = $node->field_ad_start_date[$node->language][0]['value'];
-	}
-	if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
+    }
+    if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
       $end_time = $node->field_ad_end_date[$node->language][0]['value'];
-	}
+    }
         
     $start_time = strtotime($start_time);
     $end_time = strtotime($end_time);
@@ -379,12 +379,21 @@ function _simpleads_load_ads($tid, $limit) {
 
     while ($record = $results->fetchAssoc()) {
       $node = node_load($record['nid']);
-      $image = file_create_url($node->field_ad_image[$node->language][0]['uri']);
-      $alt = $node->field_ad_image[$node->language][0]['alt'];
+      $image = "";
+      $image_uri = "";
+      $alt = "";
+      if (isset($node->field_ad_image[$node->language]) && !empty($node->field_ad_image[$node->language][0]['uri'])) {
+        $image = file_create_url($node->field_ad_image[$node->language][0]['uri']);
+        $alt = $node->field_ad_image[$node->language][0]['alt'];
+        $image_uri = $node->field_ad_image[$node->language][0]['uri'];
+      }
+
       _simpleads_save_impression($node->nid);
+
       $result[] = array(
         'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
         'image' => $image,
+        'image_uri' => $image_uri,
         'alt' => $alt,
         'nid' => $node->nid,
       );
