@@ -318,6 +318,11 @@ function simpleads_preprocess_simpleads_block(&$vars) {
   global $user;
   $ads = array();
   
+  $vars['attributes_array'] = array();
+  $vars['title_attributes_array'] = array();
+  $vars['content_attributes_array'] = array();
+  $vars['classes_array'] = array();
+  
   $tid = $vars['tid'];
   $limit = $vars['ads_limit'];
   
