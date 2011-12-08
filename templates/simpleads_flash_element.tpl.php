@@ -16,6 +16,9 @@ $height = !empty($settings['ads_height']) ? check_plain($settings['ads_height'])
     <param name="movie" value="<?php print $ad['flash']; ?>" />
     <param name="quality" value="high" />
     <param name="bgcolor" value="#ffffff" />
+    <?php if ($ad['url']) : ?>
+      <param value="clickTAG=<?php print url($ad['url']); ?>" name="flashvars">
+    <?php endif; ?>
   
     <embed src="<?php print $ad['flash']; ?>" quality="high" bgcolor="#ffffff" width="<?php print $width; ?>" height="<?php print $height; ?>" name="ad-<?php print $ad['nid']; ?>" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed> 
   

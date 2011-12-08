@@ -34,7 +34,7 @@ function _simpelads_switch_form(ad_type) {
     }
     else if (ad_type == 'flash') {
       $('form#simpleads-node-form #edit-field-ad-image').hide();
-      $('form#simpleads-node-form #edit-field-ad-url').hide();
+      $('form#simpleads-node-form #edit-field-ad-url').show();
       $('form#simpleads-node-form #edit-field-ad-flash').show();
       $('form#simpleads-node-form #edit-field-ad-text').hide();
     }

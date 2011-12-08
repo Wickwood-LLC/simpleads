@@ -34,21 +34,31 @@ function _simpleads_stat_tab($nid) {
   
     $node = node_load($nid);
   
+    $term_name = "";
     $op_links = l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads')));
-    $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
-  
+    if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+      $term_name = $term->name;
+	}
+    elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
+      $term_name = $term->name;
+    }
+
+    $days_left_str = "";
     $days_left = _simpleads_date_diff($node);
-    if ($days_left && $days_left > 0)
+    if ($days_left && $days_left > 0) {
       $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
+    }
   
-    $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term->name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
+    $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
     $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
   
     $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
     $result .= theme('table', array('header' => $header, 'rows' => $impressions, 'caption' => t('Ad Impressions / Unique Impressions')));
     $result .= $form_after_stats;
   }
-    
+  
   return $result;
 }
 
@@ -233,6 +243,10 @@ function _simpleads_listing() {
       $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
       $term_name = $term->name;
     }
+    elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
+      $term_name = $term->name;
+    }
   
     $rows[] = array(
       array(
@@ -336,7 +350,10 @@ function _simpleads_date_diff($node) {
   }
   elseif ($ustart_time == '' && $uend_time == '') {
     return FALSE;
-  }  
+  }
+  else {
+    return 0;
+  }
 }
 
 /**
