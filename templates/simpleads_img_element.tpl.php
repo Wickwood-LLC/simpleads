@@ -2,7 +2,7 @@
 
 /**
  * @file
- * SimpleAds HTML ad.
+ * SimpleAds Image ad.
  */
 ?>
 <a href="<?php print url($ad['url']); ?>" target="_blank">

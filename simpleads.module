@@ -19,7 +19,7 @@ function simpleads_menu() {
     'type' => MENU_CALLBACK,
   );
     
-  $items['admin/content/simpleads/%/stat'] = array(
+  $items['admin/content/simpleads/%simpleadsid/stat'] = array(
     'title' => 'Ad Statistics',
     'page callback' => '_simpleads_stat_tab',
     'page arguments' => array(3),
@@ -68,6 +68,7 @@ function simpleads_menu() {
   return $items;
 }
 
+
 /**
  * Implements hook_permission().
  */
@@ -98,20 +99,35 @@ function simpleads_node_access($node, $op, $account) {
 }
 
 /**
+ * Implements hook_node_load().
+ */
+function simpleads_node_load($nodes, $types) {
+  global $user;
+  // Count impressions
+  if (user_access('count ad impressions')) {
+    foreach ($nodes as $node) {
+      if ($node->type == 'simpleads' && $user->uid != 1) {
+        _simpleads_save_impression($node->nid);
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_node_presave().
  */
 function simpleads_node_presave($node) {
   if ($node->type == 'simpleads') {
     $start_time = 0;
     $end_time = 0;
-
+  
     if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
       $start_time = $node->field_ad_start_date[$node->language][0]['value'];
     }
     if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
       $end_time = $node->field_ad_end_date[$node->language][0]['value'];
     }
-        
+    
     $start_time = strtotime($start_time);
     $end_time = strtotime($end_time);
         
@@ -309,6 +325,16 @@ function simpleads_theme($existing, $type, $theme, $path) {
       'path' => $path . '/templates',
       'template' => 'simpleads_img_element',
     ),
+    'simpleads_text_element' => array(
+      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_text_element',
+    ),
+    'simpleads_flash_element' => array(
+      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_flash_element',
+    ),
     'simpleads_filter_dashboard' => array(
       'variables' => array('form' => NULL),
       'path' => $path . '/templates',
@@ -327,7 +353,7 @@ function simpleads_preprocess_simpleads_block(&$vars) {
   $vars['attributes_array'] = array();
   $vars['title_attributes_array'] = array();
   $vars['content_attributes_array'] = array();
-  $vars['classes_array'] = array();
+  $vars['classes_array'] = array('');
   
   $tid = $vars['tid'];
   $limit = $vars['ads_limit'];
@@ -385,6 +411,10 @@ function _simpleads_load_ads($tid, $limit) {
 
     while ($record = $results->fetchAssoc()) {
       $node = node_load($record['nid']);
+      $type = 'graphic';
+      if (isset($node->field_ad_type[$node->language]) && !empty($node->field_ad_type[$node->language][0]['value'])) {
+        $type = $node->field_ad_type[$node->language][0]['value'];
+      }
       $image = "";
       $image_uri = "";
       $alt = "";
@@ -393,18 +423,24 @@ function _simpleads_load_ads($tid, $limit) {
         $alt = $node->field_ad_image[$node->language][0]['alt'];
         $image_uri = $node->field_ad_image[$node->language][0]['uri'];
       }
-
-      // Count impressions
-      if (user_access('count ad impressions')) {
-        _simpleads_save_impression($node->nid);
+      $flash = "";
+      if (isset($node->field_ad_flash[$node->language]) && !empty($node->field_ad_flash[$node->language][0]['uri'])) {
+        $flash = file_create_url($node->field_ad_flash[$node->language][0]['uri']);
+      }
+      $text_ad = "";
+      if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['value'])) {
+        $text_ad = check_markup($node->field_ad_text[$node->language][0]['value'], $node->field_ad_text[$node->language][0]['format']);
       }
 
       $result[] = array(
+        'type' => $type,
         'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
         'image' => $image,
         'image_uri' => $image_uri,
         'alt' => $alt,
         'nid' => $node->nid,
+        'text' => $text_ad,
+        'flash' => $flash,
       );
     }
   }
@@ -430,7 +466,15 @@ function _simpleads_show_ads($tid, $limit) {
     foreach ($get_ads as $ad) {
       $ad_block = db_select('simpleads_blocks', 'sb')->fields('sb', array('settings'))->condition('sb.tid', $tid)->execute()->fetchField();
       $ad_setting = unserialize($ad_block);
-      $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting));
+      if ($ad['type'] == 'graphic') {
+        $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting));
+      }
+      elseif ($ad['type'] == 'text') {
+        $result .= theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting));
+      }
+      else {
+        $result .= theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting));
+      }
     }
   }
   print $result;
@@ -458,6 +502,20 @@ function _simpleads_redirect($nid) {
     }
   }
   return ' ';
+}
+
+
+/**
+ * Helper function.
+ * Return node id from arguments (used in hook_menu).
+ */
+function simpleadsid_to_arg($arg) {
+  if ($arg == '%') {
+    return 'none';
+  }
+  else {
+    return $arg;
+  }
 }
 
 /**
@@ -595,6 +653,9 @@ function _simpleads_filter_process($text, $filter, $format, $langcode, $cache, $
     foreach ($matches_code[0] as $ci => $code) {
       $ad = array(
         'tid' => $matches_code[2][$ci],
+        'ads_page' => '',
+        'width' => '',
+        'height' => '',
       );
       if ($matches_code[3][$ci] && preg_match_all('/\s+([a-zA-Z_]+)\:(\s+)?([0-9a-zA-Z\/]+)/i', $matches_code[3][$ci], $matches_attributes)) {
         foreach ($matches_attributes[0] AS $key => $attribute) {

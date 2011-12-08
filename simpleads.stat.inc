@@ -228,14 +228,18 @@ function _simpleads_listing() {
   foreach ($results as $record) {
   
     $node = node_load($record->nid);
-    $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+    $term_name = "";
+    if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+      $term_name = $term->name;
+    }
   
     $rows[] = array(
       array(
         'data' => l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE)),
       ),
       array(
-        'data' => $term->name,
+        'data' => !empty($term_name) ? $term_name : '',
       ),
       array(
         'data' => _simpleads_statuses($node),
@@ -257,8 +261,15 @@ function _simpleads_listing() {
 function _simpleads_statuses($node) {
   $status = "";
   
-  $start_time = $node->field_ad_start_date[$node->language][0]['value'];
-  $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+  $start_time = "";
+  $end_time = "";
+  
+  if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
+    $start_time = $node->field_ad_start_date[$node->language][0]['value'];
+  }
+  if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
+    $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+  }
     
   $ustart_time = strtotime(check_plain($start_time));
   $uend_time = strtotime(check_plain($end_time));
@@ -303,9 +314,15 @@ function _simpleads_statuses($node) {
  * Timestamp to days.
  */
 function _simpleads_date_diff($node) {
-    
-  $start_time = $node->field_ad_start_date[$node->language][0]['value'];
-  $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+  $start_time = "";
+  $end_time = "";
+
+  if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
+    $start_time = $node->field_ad_start_date[$node->language][0]['value'];
+  }
+  if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
+    $end_time = $node->field_ad_end_date[$node->language][0]['value'];
+  }
     
   $ustart_time = strtotime($start_time);
   $uend_time = strtotime($end_time);

@@ -4,6 +4,9 @@
  * @file
  * SimpleAds Block template
  *
+ * Use Javascript code below when you enable caching,
+ * otherwise it will be cached and rotating will not work.
+ * 
  * $ads_page
  *   Url to Advertise page (configurable in block settings).
  *
@@ -27,23 +30,34 @@
  *
  */
 
+  $ad_setting = array(
+    'ads_width' => check_plain($ads_width),
+    'ads_height' => check_plain($ads_height),
+  );
+
 ?>
 <div class="header">
   <div class="ad-link"><?php if(!is_null($ads_page)) : print l(t('Advertise with us'), $ads_page); endif; ?></div>
 </div>
 <div class="adslist">
-  
+<!--
   <script type="text/javascript">
+    // Consider using only one method (javascript or code below).
     _simpelads_load('#ads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
   </script>
   <div id="ads-<?php print $tid; ?><?php if ($prefix) :?>-<?php print $prefix; ?><?php endif; ?>"></div>
-  
-  <noscript>
+  -->
+
   <?php if (count($ads) > 0) : ?>
     <?php foreach ($ads as $ad) : ?>
-      <a href="<?php print url($ad['url']); ?>" target="_blank"><img src="<?php print $ad['image']; ?>" width="<?php print check_plain($ads_width); ?>" height="<?php print check_plain($ads_height); ?>" alt="<?php print check_plain($ad['alt']); ?>" border="0"></a>
+      <?php if ($ad['type'] == 'graphic') : ?>
+        <?php print theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+      <?php elseif ($ad['type'] == 'text') : ?>
+        <?php print theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+      <?php else : ?>
+        <?php print theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+      <?php endif; ?>
     <?php endforeach; ?>
   <?php endif; ?>
-  </noscript>
   
 </div>

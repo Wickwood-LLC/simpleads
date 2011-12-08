@@ -3,5 +3,6 @@ description = "Advertisements"
 core = "7.x"
 
 scripts[] = simpleads.js
+stylesheets[all][] = simpleads.css
 
 dependencies[] = taxonomy

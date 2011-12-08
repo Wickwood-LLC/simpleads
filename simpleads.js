@@ -6,12 +6,43 @@
 (function ($) {
   Drupal.behaviors.simpleads = {
     attach: function(context) {
+      var ad_type = $('#edit-field-ad-type select[id^=edit-field-ad-type]').val();
+      _simpelads_switch_form(ad_type);
+      $('#edit-field-ad-type select[id^=edit-field-ad-type]').change(function(){
+        _simpelads_switch_form($(this).val());
+      });
     }
   };
 }(jQuery));
 
 /**
- *	Ajax call for Ads.
+ * Show/hide form elements.
+ */
+function _simpelads_switch_form(ad_type) {
+  (function ($) {
+    if (ad_type == 'graphic') {
+      $('form#simpleads-node-form #edit-field-ad-image').show();
+      $('form#simpleads-node-form #edit-field-ad-url').show();
+      $('form#simpleads-node-form #edit-field-ad-flash').hide();
+      $('form#simpleads-node-form #edit-field-ad-text').hide();
+    }
+    else if (ad_type == 'text') {
+      $('form#simpleads-node-form #edit-field-ad-image').hide();
+      $('form#simpleads-node-form #edit-field-ad-url').hide();
+      $('form#simpleads-node-form #edit-field-ad-flash').hide();
+      $('form#simpleads-node-form #edit-field-ad-text').show();
+    }
+    else if (ad_type == 'flash') {
+      $('form#simpleads-node-form #edit-field-ad-image').hide();
+      $('form#simpleads-node-form #edit-field-ad-url').hide();
+      $('form#simpleads-node-form #edit-field-ad-flash').show();
+      $('form#simpleads-node-form #edit-field-ad-text').hide();
+    }
+  }(jQuery));
+}
+
+/**
+ * Ajax call for Ads.
  * elem - Ad container
  * tid  - term id
  * num - numer of ads to display
