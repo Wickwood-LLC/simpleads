@@ -42,6 +42,6 @@ Plugin allows to inject Ads into content.
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
 Video Filter module and enable WYSIWYG plugin to embed video you want.
 
-- Flash Ads, upload FLW file and it will automatically show-up in your block.
+- Flash Ads, upload SWF file and it will automatically show-up in your block.
 
 The project has been developed by Urban Insight.
