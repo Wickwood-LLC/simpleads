@@ -28,6 +28,9 @@
  * $ads_limit
  *   Numer of ads to dispaly
  *
+ * Note: Consider using only one method (javascript or code below),
+ * otherwise Ad Impressions will be doubled.
+ *
  */
 
   $ad_setting = array(
@@ -40,15 +43,13 @@
   <div class="ad-link"><?php if(!is_null($ads_page)) : print l(t('Advertise with us'), $ads_page); endif; ?></div>
 </div>
 <div class="adslist">
-<!--
   <script type="text/javascript">
-    // Consider using only one method (javascript or code below).
     _simpelads_load('#ads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
   </script>
   <div id="ads-<?php print $tid; ?><?php if ($prefix) :?>-<?php print $prefix; ?><?php endif; ?>"></div>
-  -->
 
-  <?php if (count($ads) > 0) : ?>
+  <?php // Code below displays ad, but if Drupal cache enabled, the ad remains the same until the cache not cleared or not expired. ?>
+  <?php /* if (count($ads) > 0) : ?>
     <?php foreach ($ads as $ad) : ?>
       <?php if ($ad['type'] == 'graphic') : ?>
         <?php print theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
@@ -58,6 +59,6 @@
         <?php print theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
       <?php endif; ?>
     <?php endforeach; ?>
-  <?php endif; ?>
+  <?php endif; */ ?>
   
 </div>
