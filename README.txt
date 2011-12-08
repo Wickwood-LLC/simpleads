@@ -40,7 +40,7 @@ Plugin allows to inject Ads into content.
 
 - Text Ads allows to advertise any text. If you would like to advertise
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
-Video Filter module and enable WYSIWYG plugin for it.
+Video Filter module and enable WYSIWYG plugin to embed video you want.
 
 - Flash Ads, upload FLW file and it will automatically show-up in your block.
 
