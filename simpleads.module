@@ -86,6 +86,9 @@ function simpleads_permission() {
     'count ad clicks' => array(
       'title' => t('Count ad clicks'),
     ),
+    'redirect ad destination' => array(
+      'title' => t('Redirect to destination'),
+    ),
   );
 }
 
@@ -530,15 +533,21 @@ function _simpleads_redirect($nid) {
   global $user;
   if (is_numeric($nid)) {
     $node = node_load($nid);
-    $url = $node->field_ad_url[$node->language][0]['value'];
-    if ($user->uid == 1) {
-      drupal_goto('node/' . $node->nid);
+    $url = "";
+    if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
+      $url = $node->field_ad_url[$node->language][0]['value'];
+      if (!user_access('redirect ad destination') || $user->uid == 1) {
+        drupal_goto('node/' . $node->nid);
+      }
+      else {
+        if (user_access('count ad clicks')) {
+          _simpleads_save_click($node->nid);
+        }
+        header("Location: " . $url);
+      }
     }
     else {
-      if (user_access('count ad clicks')) {
-        _simpleads_save_click($node->nid);
-      }
-      header("Location: " . $url);
+      return t('URL Address is not specified');
     }
   }
   return ' ';

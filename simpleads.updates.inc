@@ -340,7 +340,7 @@ function simpleads_update_7002(&$sandbox) {
  * Modify block settings field.
  */
 function simpleads_update_7003(&$sandbox) {
-  db_change_field('simpleads_blocks', 'settings', 'settings', array('type' => 'text', 'not null' => TRUE, 'description' => 'Serialized data (settings)',));
+  db_change_field('simpleads_blocks', 'settings', 'settings', array('type' => 'text', 'not null' => TRUE, 'description' => 'Serialized data (settings)'));
   
   $instance = array(
     'field_name' => 'field_ad_text',
@@ -404,4 +404,11 @@ function simpleads_update_7003(&$sandbox) {
     ),
   );
   field_update_instance($instance);
+}
+
+/**
+ * Add new user permission (Redirect to destination).
+ */
+function simpleads_update_7004(&$sandbox) {
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('redirect ad destination'));
 }
