@@ -169,6 +169,7 @@ function simpleads_taxonomy_term_insert($term) {
       'block_subject' => t('Advertisement'),
       'block_delta' => $block_delta,
       'ads_page' => '',
+      'ads_order' => 0,
     );
   
     db_insert('simpleads_blocks')
@@ -263,6 +264,17 @@ function simpleads_block_configure($delta = '') {
         '#title' => t('Ad height'),
         '#default_value' => $data['ads_height'],
       );
+      $form['ads_order'] = array(
+        '#type' => 'select',
+        '#title' => t('Ads order'),
+        '#default_value' => isset($data['ads_order']) ? $data['ads_order'] : 0,
+        '#options' => array(
+          0 => t('Random'),
+          1 => t('Order by created date DESC'),
+          2 => t('Order by modifed date DESC'),
+          3 => t('Order by node title ASC'),
+        ),
+      );
     }
   }
   return $form;
@@ -281,6 +293,7 @@ function simpleads_block_save($delta = '', $edit = array()) {
       $data['ads_page'] = $edit['ads_page'];
       $data['ads_width'] = $edit['ads_width'];
       $data['ads_height'] = $edit['ads_height'];
+      $data['ads_order'] = $edit['ads_order'];
   
       db_update('simpleads_blocks')
       ->fields(array(
@@ -377,6 +390,20 @@ function _simpleads_access_callback() {
 
 /**
  * Helper function.
+ * Get block settings by Ad group id.
+ */
+function _simpleads_adgroup_settings($tid) {
+  if (is_numeric($tid)) {
+    $block = db_select('simpleads_blocks', 'sb')->fields('sb')->condition('sb.tid', $tid)->execute()->fetchObject();
+    return unserialize($block->settings);
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Helper function.
  *
  * @param $tid
  *   Term ID (Ad group ID)
@@ -398,14 +425,27 @@ function _simpleads_load_ads($tid, $limit) {
     $term_ids[] = $tid;
     
   if (is_numeric($limit)) {
-        
+    
+    $ad_settings = _simpleads_adgroup_settings($tid);
+    
     $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
     $query->condition('n.type', 'simpleads');
     $query->condition('ti.tid', $term_ids, 'IN');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'))
-    ->orderRandom()
-    ->range(0, $limit);
+    if (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 1) {
+      $query->orderBy('n.created', 'DESC');
+    }
+    elseif (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 2) {
+      $query->orderBy('n.changed', 'DESC');
+    }
+    elseif (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 3) {
+      $query->orderBy('n.title', 'ASC');
+    }
+    else {
+      $query->orderRandom();
+    }
+    $query->range(0, $limit);
   
     $results = $query->execute();
 

@@ -40,7 +40,7 @@
 
 ?>
 <div class="header">
-  <div class="ad-link"><?php if(!is_null($ads_page)) : print l(t('Advertise with us'), $ads_page); endif; ?></div>
+  <div class="ad-link"><?php if(!is_null($ads_page) && !empty($ads_page)) : print l(t('Advertise with us'), $ads_page); endif; ?></div>
 </div>
 <div class="adslist">
   <script type="text/javascript">

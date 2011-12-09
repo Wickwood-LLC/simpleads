@@ -277,7 +277,7 @@ function simpleads_install() {
       'type' => 'file_generic',
       'settings' => array(
       ),
-      'weight' => 0,
+      'weight' => -1,
     ),
 
     'display' => array(
@@ -343,7 +343,7 @@ function simpleads_install() {
       'settings' => array(
         'size' => 60,
       ),
-      'weight' => -1,
+      'weight' => 0,
     ),
     'settings' => array(
       'text_processing' => 0,
@@ -428,6 +428,8 @@ function simpleads_install() {
     ),
   );
   field_create_instance($instance);
+  
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks'));
 }
 
 /**
@@ -816,4 +818,78 @@ function simpleads_update_7001(&$sandbox) {
     ),
   );
   field_create_instance($instance);
+}
+
+/**
+ * Rearrange SimleAds fields.
+ */
+function simpleads_update_7002(&$sandbox) {
+
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks'));
+
+  $instance = array(
+    'field_name' => 'field_ad_flash',
+    'entity_type' => 'node',
+    'label' => st('Ad Flash'),
+    'bundle' => 'simpleads',
+    'description' => st('Upload Flash file for this Ad.'),
+    'required' => FALSE,
+
+    'settings' => array(
+      'file_directory' => 'field/flash',
+      'file_extensions' => 'swf',
+      'max_filesize' => '',
+      'max_resolution' => '',
+      'min_resolution' => '',
+      'alt_field' => FALSE,
+      'title_field' => '',
+    ),
+
+    'widget' => array(
+      'type' => 'file_generic',
+      'settings' => array(
+      ),
+      'weight' => -1,
+    ),
+
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'type' => 'file_default',
+        'weight' => -1,
+      ),
+      'teaser' => array(
+        'label' => 'hidden',
+        'type' => 'file_default',
+        'weight' => -1,
+      ),
+    ),
+  );
+  field_update_instance($instance);
+
+  $instance = array(
+    'field_name' => 'field_ad_url',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads',
+    'label' => st('URL Address'),
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'text_textfield',
+      'settings' => array(
+        'size' => 60,
+      ),
+      'weight' => 0,
+    ),
+    'settings' => array(
+      'text_processing' => 0,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'text_default',
+        'settings' => array(),
+      ),
+    ),
+  );
+  field_update_instance($instance);
 }

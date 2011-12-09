@@ -39,7 +39,7 @@ function _simpleads_stat_tab($nid) {
     if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
       $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
       $term_name = $term->name;
-	}
+    }
     elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
       $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
       $term_name = $term->name;
