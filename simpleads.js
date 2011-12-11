@@ -118,10 +118,6 @@ function _simpelads_load(elem, tid, num, img_loader) {
     });
   }
 
-  function get_random(total_ads) {
-    return Math.floor(Math.random() * total_ads) + 1;
-  }
-
   function run_rotation(element, options) {
     elem_id = element.attr('id');
     var temp = '';
