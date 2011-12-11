@@ -22,3 +22,15 @@ form#simpleads-node-form #edit-field-ad-url .form-item {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+/* Block settings */
+form#block-admin-configure #ads_rotation_settings,
+form#block-admin-configure #ads_rotation_settings .form-item-ads-rotation-dely {
+  display: none;
+}
+
+form#block-admin-configure #ads_rotation_settings .form-item {
+  background-color: #eeeeee;
+  padding-left: 10px;
+  padding-right: 10px;
+}

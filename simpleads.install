@@ -193,7 +193,7 @@ function simpleads_install() {
       'active' => 1,
       'type' => 'options_select',
       'weight' => -3,
-      'module' => 'options',
+      'module' => 'list',
     ),
 
     'display' => array(
@@ -431,7 +431,7 @@ function simpleads_install() {
   );
   field_create_instance($instance);
   
-  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks', 'redirect ad destination'));
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks'));
 }
 
 /**

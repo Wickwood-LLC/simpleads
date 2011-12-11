@@ -44,9 +44,9 @@
 </div>
 <div class="adslist">
   <script type="text/javascript">
-    _simpelads_load('#ads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
+    _simpelads_load('.simpleads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
   </script>
-  <div id="ads-<?php print $tid; ?><?php if ($prefix) :?>-<?php print $prefix; ?><?php endif; ?>"></div>
+  <div class="simpleads-<?php print $tid; ?><?php if ($prefix) :?>-<?php print $prefix; ?><?php endif; ?>"></div>
 
   <?php // Code below displays ad, but if Drupal cache enabled, the ad remains the same until the cache not cleared or not expired. ?>
   <?php /* if (count($ads) > 0) : ?>

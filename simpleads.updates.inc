@@ -241,7 +241,7 @@ function simpleads_update_7001(&$sandbox) {
       'active' => 1,
       'type' => 'options_select',
       'weight' => -3,
-      'module' => 'options',
+      'module' => 'list',
     ),
 
     'display' => array(
@@ -404,11 +404,4 @@ function simpleads_update_7003(&$sandbox) {
     ),
   );
   field_update_instance($instance);
-}
-
-/**
- * Add new user permission (Redirect to destination).
- */
-function simpleads_update_7004(&$sandbox) {
-  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('redirect ad destination'));
 }

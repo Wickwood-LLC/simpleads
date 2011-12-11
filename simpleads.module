@@ -59,7 +59,7 @@ function simpleads_menu() {
     'title' => 'SimpleAds Filter',
     'description' => 'Filter Dashboard',
     'page callback' => '_simpleads_filter_dashboard_page',
-    'access arguments' => array('access content'),
+    'access arguments' => array('administer nodes'),
     'type' => MENU_CALLBACK,
     'page arguments' => array(2),
     'theme callback' => '_simpleads_filter_dashboard_theme',
@@ -77,17 +77,11 @@ function simpleads_permission() {
     'access ad statistics' => array(
       'title' => t('Access ad statistics'),
     ),
-    'access ad nodes' => array(
-      'title' => t('Access ad nodes'),
-    ),
     'count ad impressions' => array(
       'title' => t('Count ad impressions'),
     ),
     'count ad clicks' => array(
       'title' => t('Count ad clicks'),
-    ),
-    'redirect ad destination' => array(
-      'title' => t('Redirect to destination'),
     ),
   );
 }
@@ -96,7 +90,7 @@ function simpleads_permission() {
  * Implements hook_node_access().
  */
 function simpleads_node_access($node, $op, $account) {
-  if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('access ad nodes', $account)) {
+  if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('administer nodes', $account)) {
     return NODE_ACCESS_DENY;
   }
 }
@@ -255,17 +249,17 @@ function simpleads_block_configure($delta = '') {
       $form['ads_page'] = array(
         '#type' => 'textfield',
         '#title' => t('Advertise page'),
-        '#default_value' => $data['ads_page'],
+        '#default_value' => check_plain($data['ads_page']),
       );
       $form['ads_width'] = array(
         '#type' => 'textfield',
         '#title' => t('Ad width'),
-        '#default_value' => $data['ads_width'],
+        '#default_value' => check_plain($data['ads_width']),
       );
       $form['ads_height'] = array(
         '#type' => 'textfield',
         '#title' => t('Ad height'),
-        '#default_value' => $data['ads_height'],
+        '#default_value' => check_plain($data['ads_height']),
       );
       $form['ads_order'] = array(
         '#type' => 'select',
@@ -277,6 +271,24 @@ function simpleads_block_configure($delta = '') {
           2 => t('Order by modifed date DESC'),
           3 => t('Order by node title ASC'),
         ),
+      );
+      $form['ads_rotation_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Ads auto rotation type'),
+        '#default_value' => isset($data['ads_rotation_type']) ? $data['ads_rotation_type'] : 0,
+        '#options' => array(
+          0 => t('None'),
+          1 => t('Default'),
+          2 => t('Fast FadeIn'),
+        ),
+        '#prefix' => '<div id="ads_rotation_settings">',
+      );
+      $form['ads_rotation_delay'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Ad rotation delay'),
+        '#default_value' => isset($data['ads_rotation_delay']) ? check_plain($data['ads_rotation_delay']) : 10,
+        '#description' => t('Delay value is in seconds'),
+        '#suffix' => '</div>',
       );
     }
   }
@@ -297,6 +309,8 @@ function simpleads_block_save($delta = '', $edit = array()) {
       $data['ads_width'] = $edit['ads_width'];
       $data['ads_height'] = $edit['ads_height'];
       $data['ads_order'] = $edit['ads_order'];
+      $data['ads_rotation_type'] = $edit['ads_rotation_type'];
+      $data['ads_rotation_delay'] = $edit['ads_rotation_delay'];
   
       db_update('simpleads_blocks')
       ->fields(array(
@@ -335,6 +349,11 @@ function simpleads_theme($existing, $type, $theme, $path) {
       'preprocess functions' => array(
         'simpleads_preprocess_simpleads_block',
       ),
+    ),
+    'simpleads_ajax_call' => array(
+      'variables' => array('content' => NULL, 'total_ads' => NULL, 'tid' => NULL, 'settings' => NULL),
+      'path' => $path . '/templates',
+      'template' => 'simpleads_ajax_call',
     ),
     'simpleads_img_element' => array(
       'variables' => array('ad' => NULL, 'settings' => NULL),
@@ -386,7 +405,7 @@ function simpleads_preprocess_simpleads_block(&$vars) {
  */
 function _simpleads_access_callback() {
   global $user;
-  if (user_access('create simpleads content') || (user_access('administer content') && user_access('bypass node access'))) {
+  if (user_access('create simpleads content') || (user_access('administer nodes') && user_access('bypass node access'))) {
     return TRUE;
   }
 }
@@ -504,6 +523,8 @@ function _simpleads_load_ads($tid, $limit) {
  */
 function _simpleads_show_ads($tid, $limit) {
   $result = "";
+  $settings = array();
+  $count = 0;
   if (is_numeric($tid)) {
     $get_ads = _simpleads_load_ads($tid, $limit);
     foreach ($get_ads as $ad) {
@@ -518,9 +539,11 @@ function _simpleads_show_ads($tid, $limit) {
       else {
         $result .= theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting));
       }
+      $count++;
     }
+    $settings = $ad_settings = _simpleads_adgroup_settings($tid);
   }
-  print $result;
+  print theme('simpleads_ajax_call', array('content' => $result, 'total_ads' => $count, 'tid' => $tid, 'settings' => $settings));
   exit;
 }
 
@@ -536,7 +559,7 @@ function _simpleads_redirect($nid) {
     $url = "";
     if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
       $url = $node->field_ad_url[$node->language][0]['value'];
-      if (!user_access('redirect ad destination') || $user->uid == 1) {
+      if (user_access('administer nodes')) {
         drupal_goto('node/' . $node->nid);
       }
       else {
