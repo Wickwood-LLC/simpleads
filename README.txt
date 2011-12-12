@@ -1,13 +1,12 @@
 > Module Name: SimpleAds
 > Author: Minnur Yunusov <minnur.yunusov@gmail.com>
-> Urban Insight, Inc.
-> http://www.urbaninsight.com
-		   
+> The project has been sponsored by Urban Insight.
+
 ---
 
 This module provides a way to feature advertisements on a Drupal website.
-It displays graphical/text/flash ads in configurable blocks.
-It records and reports useful statistics. 
+It displays graphical, text and flash ads in configurable blocks.
+It records and reports useful statistics.
 It is easy to configure and does not depend on other contrib modules.
 
 Features:
@@ -16,13 +15,13 @@ Features:
 
 - Automatically generates ad blocks for different ad types
 
-- Many configuration options for individual ad blocks including ad size 
+- Many configuration options for individual ad blocks including ad size
 and number of ads to display in a block
 
 - Convenient dashboard for quick review of active ads
 
-- User-friendly ad scheduler makes it easy to schedule ad activation 
-and expiration. 
+- User-friendly ad scheduler makes it easy to schedule ad activation
+and expiration.
 (Enter Activation or Expiration Date by typing Now, +1 week, +1 year, etc..)
 
 - Capture useful statistics including ad impressions, clicks for 1
@@ -33,15 +32,16 @@ and all time.
 
 - Ad blocks can be themed
 
+- Dynamic Ad rotation (configurable on block configuration screen)
+
 - Integration with WYSIWYG module (supports TinyMCE, CKEditor, FCKEditor).
 Plugin allows to inject Ads into content.
 
-- Since SimpleAds stored in system as content type you can use it in Views.
+- SimpleAds stored in the system as content type 
+meaning that you can use it in Views.
 
 - Text Ads allows to advertise any text. If you would like to advertise
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
-Video Filter module and enable WYSIWYG plugin to embed video you want.
+Video Filter module and enable WYSIWYG plugin.
 
-- Flash Ads, upload SWF file and it will automatically show-up in your block.
-
-The project has been developed by Urban Insight.
+- Flash Ads, upload SWF file and it will automatically show up in your block.
