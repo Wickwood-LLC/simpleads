@@ -18,7 +18,7 @@ function _simpleads_stat_tab($nid) {
     $stats = _simpleads_get_statistics('simpleads_clicks', $nid);
     $stat_results = array();
     foreach ($stats as $key => $val) {
-      $header[]['data'] = t($key);
+      $header[]['data'] = t('@block_name', array('@block_name' => $key));
       $stat_results[]['data'] = $val;
     }
     
