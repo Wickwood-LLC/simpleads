@@ -2,7 +2,7 @@
 
 /**
  * @file
- * SimpleAds template for ajax callback.
+ * SimpleAds template for AJAX callback.
  */
 
 ?>
@@ -10,7 +10,11 @@
 <script type="text/javascript">
 (function ($) {
   $(document).ready(function() {
-      $("div#<?php print $settings['block_delta']; ?>").simpleads_rotator({rotation_type: <?php print $settings['ads_rotation_type']; ?>, delay: <?php print $settings['ads_rotation_delay'] * 1000; ?>, tid: <?php print $tid; ?>});
+    $("div#<?php print $settings['block_delta']; ?>").simpleads_rotator({
+      rotation_type: <?php print $settings['ads_rotation_type']; ?>, 
+      delay: <?php print $settings['ads_rotation_delay'] * 1000; ?>, 
+      tid: <?php print $tid; ?>
+    });
   });
 }(jQuery));
 </script>

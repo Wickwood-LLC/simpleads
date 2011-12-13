@@ -17,6 +17,7 @@ $height = !empty($settings['ads_height']) ? check_plain($settings['ads_height'])
     <param name="quality" value="high" />
     <param name="bgcolor" value="#ffffff" />
     <?php if ($ad['url']) : ?>
+	  <?php // Passing URL to redirect ?>
       <param value="clickTAG=<?php print url($ad['url']); ?>" name="flashvars">
     <?php endif; ?>
   
