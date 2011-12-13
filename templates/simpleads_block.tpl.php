@@ -28,8 +28,8 @@
  * $ads_limit
  *   Numer of ads to dispaly
  *
- * Note: Consider using only one method (javascript or code below),
- * otherwise Ad Impressions will be doubled.
+ * Note: Consider using only one method (javascript or static output),
+ * otherwise ad impression counter will be doubled.
  *
  */
 
