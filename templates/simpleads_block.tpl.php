@@ -33,7 +33,7 @@
  *
  */
 
-  $ad_setting = array(
+  $settings = array(
     'ads_width' => check_plain($ads_width),
     'ads_height' => check_plain($ads_height),
   );
@@ -56,11 +56,11 @@
   <?php /* if (count($ads) > 0) : ?>
     <?php foreach ($ads as $ad) : ?>
       <?php if ($ad['type'] == 'graphic') : ?>
-        <?php print theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+        <?php print theme('simpleads_img_element', array('ad' => $ad, 'settings' => $settings)); ?>
       <?php elseif ($ad['type'] == 'text') : ?>
-        <?php print theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+        <?php print theme('simpleads_text_element', array('ad' => $ad, 'settings' => $settings)); ?>
       <?php else : ?>
-        <?php print theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting)); ?>
+        <?php print theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $settings)); ?>
       <?php endif; ?>
     <?php endforeach; ?>
   <?php endif; */ ?>
