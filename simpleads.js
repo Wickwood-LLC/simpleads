@@ -33,18 +33,21 @@ function _simpelads_switch_form(ad_type) {
     if (ad_type == 'graphic') {
       $('form#simpleads-node-form #edit-field-ad-image').show();
       $('form#simpleads-node-form #edit-field-ad-url').show();
+      $('form#simpleads-node-form #edit-field-ad-url-taget').show();
       $('form#simpleads-node-form #edit-field-ad-flash').hide();
       $('form#simpleads-node-form #edit-field-ad-text').hide();
     }
     else if (ad_type == 'text') {
       $('form#simpleads-node-form #edit-field-ad-image').hide();
       $('form#simpleads-node-form #edit-field-ad-url').hide();
+      $('form#simpleads-node-form #edit-field-ad-url-taget').hide();
       $('form#simpleads-node-form #edit-field-ad-flash').hide();
       $('form#simpleads-node-form #edit-field-ad-text').show();
     }
     else if (ad_type == 'flash') {
       $('form#simpleads-node-form #edit-field-ad-image').hide();
       $('form#simpleads-node-form #edit-field-ad-url').show();
+      $('form#simpleads-node-form #edit-field-ad-url-taget').show();
       $('form#simpleads-node-form #edit-field-ad-flash').show();
       $('form#simpleads-node-form #edit-field-ad-text').hide();
     }

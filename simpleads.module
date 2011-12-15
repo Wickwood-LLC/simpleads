@@ -359,6 +359,9 @@ function simpleads_theme($existing, $type, $theme, $path) {
       'variables' => array('ad' => NULL, 'settings' => NULL),
       'path' => $path . '/templates',
       'template' => 'simpleads_img_element',
+      'preprocess functions' => array(
+        'simpleads_preprocess_simpleads_img_element',
+      ),
     ),
     'simpleads_text_element' => array(
       'variables' => array('ad' => NULL, 'settings' => NULL),
@@ -385,10 +388,7 @@ function simpleads_preprocess_simpleads_block(&$vars) {
   global $user;
   $ads = array();
   
-  $vars['attributes_array'] = array();
-  $vars['title_attributes_array'] = array();
-  $vars['content_attributes_array'] = array();
-  $vars['classes_array'] = array('');
+  $vars = _simpleads_theme_attributes_init($vars);
   
   $tid = $vars['tid'];
   $limit = $vars['ads_limit'];
@@ -398,6 +398,43 @@ function simpleads_preprocess_simpleads_block(&$vars) {
   }
   $vars['ads'] = $ads;
   $vars['user_id'] = $user->uid;
+}
+
+/**
+ * Preprocess for simpleads_img_element.tpl.php
+ */
+function simpleads_preprocess_simpleads_img_element(&$vars) {
+  $link_attributes = array();
+  $image_attributes = array();
+  $vars = _simpleads_theme_attributes_init($vars);
+  
+  // Image attributes
+  $image_attributes['path'] = $vars['ad']['image_uri'];
+  $image_attributes['alt'] = check_plain($vars['ad']['alt']);
+  if (isset($vars['settings']['ads_width']) && is_numeric($vars['settings']['ads_width'])) {
+    $image_attributes['width'] = check_plain($vars['settings']['ads_width']);
+  }
+  if (isset($vars['settings']['ads_height']) && is_numeric($vars['settings']['ads_height'])) {
+    $image_attributes['height'] = check_plain($vars['settings']['ads_height']);
+  }
+  
+  // Link attributes
+  $link_attributes['html'] = TRUE;
+  if ($vars['ad']['target']) {
+    $link_attributes['attributes']['target'] = '_blank';
+  }
+  
+  $vars['link_attributes'] = $link_attributes;
+  $vars['image_attributes'] = $image_attributes;
+}
+
+// Init theme required attributes
+function _simpleads_theme_attributes_init($vars) {
+  $vars['attributes_array'] = array();
+  $vars['title_attributes_array'] = array();
+  $vars['content_attributes_array'] = array();
+  $vars['classes_array'] = array('');
+  return $vars;
 }
 
 /**
@@ -493,10 +530,15 @@ function _simpleads_load_ads($tid, $limit) {
       if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['value'])) {
         $text_ad = check_markup($node->field_ad_text[$node->language][0]['value'], $node->field_ad_text[$node->language][0]['format']);
       }
+      $target = TRUE;
+      if (isset($node->field_ad_url_taget[$node->language]) && $node->field_ad_url_taget[$node->language][0]['value'] == 0) {
+        $target = FALSE;
+      }
 
       $result[] = array(
         'type' => $type,
         'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
+        'target' => $target,
         'image' => $image,
         'image_uri' => $image_uri,
         'alt' => $alt,

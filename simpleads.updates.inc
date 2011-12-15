@@ -405,3 +405,124 @@ function simpleads_update_7003(&$sandbox) {
   );
   field_update_instance($instance);
 }
+
+/**
+ * Create a new field for URL window targeting.
+ */
+function simpleads_update_7004(&$sandbox) {
+
+  $fields = array(
+    array(
+      'field_name' => 'field_ad_url_taget',
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'translatable' => TRUE,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => st('Open destination URL in the same window'),
+          1 => st('Open destination URL in a new window'),
+        ),
+        'allowed_values_function' => '',
+      ),
+      'module' => 'list',
+      'translatable' => TRUE,
+      'entity_types' => array(),
+    ),
+  );
+  foreach ($fields as $field) {
+    field_create_field($field);
+  }
+
+  $instance = array(
+    'field_name' => 'field_ad_url_taget',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads',
+    'label' => st('Link Target'),
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'options_onoff',
+      'settings' => array(
+        'display_label' => 0,
+      ),
+      'weight' => 2,
+      'module' => 'options',
+    ),
+    'default_value' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'list_default',
+        'module' => 'list',
+        'settings' => array(),
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  $instance = array(
+    'field_name' => 'field_ad_start_date',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads',
+    'label' => st('Active Date'),
+    'description' => st('Alowed date formats: now, tomorrow, next week, 10 September 2011, +1 day, +1 week, +1 year, +1 week 2 days 4 hours 2 seconds, next Monday, last Friday, mm/dd/yyyy hh:ss am/pm'),
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'text_textfield',
+      'settings' => array(
+        'size' => 60,
+      ),
+      'weight' => 3,
+    ),
+    'settings' => array(
+      'text_processing' => 0,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'text_default',
+        'settings' => array(),
+      ),
+    ),
+  );
+  field_update_instance($instance);
+
+  $instance = array(
+    'field_name' => 'field_ad_end_date',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads',
+    'label' => st('End Date'),
+    'description' => st('Alowed date formats: now, tomorrow, next week, 10 September 2011, +1 day, +1 week, +1 year, +1 week 2 days 4 hours 2 seconds, next Monday, last Friday, mm/dd/yyyy hh:ss am/pm'),
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'text_textfield',
+      'settings' => array(
+        'size' => 60,
+      ),
+      'weight' => 4,
+    ),
+    'settings' => array(
+      'text_processing' => 0,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'text_default',
+        'settings' => array(),
+      ),
+    ),
+  );
+  field_update_instance($instance);
+}

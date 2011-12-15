@@ -161,6 +161,22 @@ function simpleads_install() {
       'translatable' => TRUE,
       'entity_types' => array(),
     ),
+    array(
+      'field_name' => 'field_ad_url_taget',
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'translatable' => TRUE,
+      'settings' => array(
+        'allowed_values' => array(
+          0 => st('Open destination URL in the same window'),
+          1 => st('Open destination URL in a new window'),
+        ),
+        'allowed_values_function' => '',
+      ),
+      'module' => 'list',
+      'translatable' => TRUE,
+      'entity_types' => array(),
+    ),
   );
   foreach ($fields as $field) {
     field_create_field($field);
@@ -361,6 +377,45 @@ function simpleads_install() {
   field_create_instance($instance);
 
   $instance = array(
+    'field_name' => 'field_ad_url_taget',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads',
+    'label' => st('Link Target'),
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'options_onoff',
+      'settings' => array(
+        'display_label' => 0,
+      ),
+      'weight' => 2,
+      'module' => 'options',
+    ),
+    'default_value' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'list_default',
+        'module' => 'list',
+        'settings' => array(),
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  $instance = array(
     'field_name' => 'field_ad_category',
     'entity_type' => 'node',
     'label' => st('Ad Group'),
@@ -389,7 +444,7 @@ function simpleads_install() {
       'settings' => array(
         'size' => 60,
       ),
-      'weight' => 2,
+      'weight' => 3,
     ),
     'settings' => array(
       'text_processing' => 0,
@@ -416,7 +471,7 @@ function simpleads_install() {
       'settings' => array(
         'size' => 60,
       ),
-      'weight' => 3,
+      'weight' => 4,
     ),
     'settings' => array(
       'text_processing' => 0,
@@ -453,6 +508,7 @@ function simpleads_uninstall() {
   field_delete_field('field_ad_category');
   field_delete_field('field_ad_start_date');
   field_delete_field('field_ad_end_date');
+  field_delete_field('field_ad_url_taget');
   node_type_delete('simpleads');
   
   $vid = db_select('taxonomy_vocabulary', 'tv')

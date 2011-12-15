@@ -17,12 +17,12 @@ $height = !empty($settings['ads_height']) ? check_plain($settings['ads_height'])
     <param name="quality" value="high" />
     <param name="bgcolor" value="#ffffff" />
     <?php if ($ad['url']) : ?>
-	  <?php // Passing URL to redirect ?>
+      <?php // Passing URL to redirect ?>
       <param value="clickTAG=<?php print url($ad['url']); ?>" name="flashvars">
     <?php endif; ?>
   
     <embed src="<?php print $ad['flash']; ?>" quality="high" bgcolor="#ffffff" width="<?php print $width; ?>" height="<?php print $height; ?>" name="ad-<?php print $ad['nid']; ?>" align="" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed> 
   
-  </object> 
+  </object>
 </div>
 <?php endif; ?>
