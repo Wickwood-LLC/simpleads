@@ -28,6 +28,8 @@ and expiration.
 hours, one day, one week, one month, 3 months, 6 months, 1 year,
 and all time.
 
+- Option to count clicks/impressions only for certain user roles
+
 - Generates live ad statistics report
 
 - Ad blocks can be themed
