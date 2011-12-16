@@ -21,7 +21,7 @@ function _simpleads_stat_tab($nid) {
       $header[]['data'] = t('@block_name', array('@block_name' => $key));
       $stat_results[]['data'] = $val;
     }
-    
+
     $clicks[] = $stat_results;
 
     $stats = _simpleads_get_statistics('simpleads_impressions', $nid);
@@ -31,9 +31,9 @@ function _simpleads_stat_tab($nid) {
     }
 
     $impressions[] = $stat_results;
-  
+
     $node = node_load($nid);
-  
+
     $term_name = "";
     $op_links = l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads')));
     if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
@@ -50,15 +50,15 @@ function _simpleads_stat_tab($nid) {
     if ($days_left && $days_left > 0) {
       $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
     }
-  
+
     $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
     $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
-  
+
     $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
     $result .= theme('table', array('header' => $header, 'rows' => $impressions, 'caption' => t('Ad Impressions / Unique Impressions')));
     $result .= $form_after_stats;
   }
-  
+
   return $result;
 }
 
@@ -96,51 +96,51 @@ function _simpleads_new_add() {
  */
 function _simpleads_group_filter_form() {
   $form = array();
-  
+
   $terms = array('' => t('Show All'));
   $vid = db_select('taxonomy_vocabulary', 'tv')->fields('tv', array('vid'))->condition('tv.machine_name', 'ad_groups')->execute()->fetchField();
   $results = db_select('taxonomy_term_data', 'td')->fields('td', array('tid', 'name'))->condition('td.vid', $vid)->execute();
   foreach ($results as $record) {
     $terms[$record->tid] = $record->name;
   }
-  
+
   $filter = array('adgroup' => '', 'adstatus' => '', 'adsperpage' => 35);
   $filters = variable_get('simpleads_filters', FALSE);
   if ($filters) {
     $filter = unserialize($filters);
   }
-  
+
   $form['ad_filter'] = array(
     '#type' => 'fieldset',
   );
-  
+
   $form['ad_filter']['css'] = array(
     '#markup' => '<style>
       #-simpleads-group-filter-form .form-item { float: left; margin-right: 10px; }
       #-simpleads-group-filter-form .form-item .form-submit { margin-top: 20px; }
       </style>',
   );
-  
+
   $form['ad_filter']['adgroup'] = array(
     '#type' => 'select',
     '#title' => t('Ad Group'),
     '#options' => $terms,
     '#default_value' => $filter['adgroup'],
   );
-  
+
   $statuses = array(
     '' => t('All'),
     1 => t('Active'),
     0 => t('Inactive'),
   );
-  
+
   $form['ad_filter']['adstatus'] = array(
     '#type' => 'select',
     '#title' => t('Status'),
     '#options' => $statuses,
     '#default_value' => $filter['adstatus'],
   );
-  
+
   $pages = array(
     5 => 5,
     10 => 10,
@@ -150,21 +150,21 @@ function _simpleads_group_filter_form() {
     75 => 75,
     100 => 100,
   );
-  
+
   $form['ad_filter']['adsperpage'] = array(
     '#type' => 'select',
     '#title' => t('Ads per page'),
     '#options' => $pages,
     '#default_value' => $filter['adsperpage'],
   );
-  
+
   $form['ad_filter']['filter'] = array(
     '#type' => 'submit',
     '#value' => t('Filter'),
     '#prefix' => '<div class="form-item">',
     '#suffix' => '</div>',
   );
-  
+
   return $form;
 }
 
@@ -203,18 +203,18 @@ function _simpleads_listing() {
       'data' => t('Operations'),
     ),
   );
-    
+
   $filter = array('adgroup' => '', 'adstatus' => '', 'adsperpage' => 35);
   $filters = variable_get('simpleads_filters', FALSE);
   if ($filters) {
     $filter = unserialize($filters);
   }
-  
+
   if ($filter['adgroup'] == '') {
     $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
     $query->fields('n', array('nid'));
     $query->condition('n.type', 'simpleads');
-  
+
     if ($filter['adstatus'] != '') {
       $query->condition('n.status', $filter['adstatus']);
     }
@@ -226,17 +226,17 @@ function _simpleads_listing() {
     $query->fields('n', array('nid'));
     $query->condition('n.type', 'simpleads');
     $query->condition('ti.tid', $filter['adgroup']);
-  
+
     if ($filter['adstatus'] != '') {
       $query->condition('n.status', $filter['adstatus']);
     }
-  
+
     $results = $query->execute();
   }
-  
+
   $rows = array();
   foreach ($results as $record) {
-  
+
     $node = node_load($record->nid);
     $term_name = "";
     if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
@@ -247,7 +247,7 @@ function _simpleads_listing() {
       $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
       $term_name = $term->name;
     }
-  
+
     $rows[] = array(
       array(
         'data' => l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE)),
@@ -274,35 +274,35 @@ function _simpleads_listing() {
  */
 function _simpleads_statuses($node) {
   $status = "";
-  
+
   $start_time = "";
   $end_time = "";
-  
+
   if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
     $start_time = $node->field_ad_start_date[$node->language][0]['value'];
   }
   if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
     $end_time = $node->field_ad_end_date[$node->language][0]['value'];
   }
-    
+
   $ustart_time = strtotime(check_plain($start_time));
   $uend_time = strtotime(check_plain($end_time));
   $now = time();
-    
+
   if ($node->status == 1) {
     $status .= t("Published");
-  
+
     if ($start_time != '' && $end_time != '') {
       $status .= ", " . t("Active during (@startdate - @enddate)", array('@startdate' => $start_time, '@enddate' => $end_time));
     }
     elseif ($start_time == '' && $end_time != '') {
       $status .= ", " . t("Expires on @datetime", array('@datetime' => $end_time));
     }
-  
+
   }
   else {
     $status .= t("Not Published");
-  
+
     if ($start_time != '' && $end_time != '') {
       if ($uend_time <= $now) {
         $status = t("Expired on @datetime", array('@datetime' => $end_time));
@@ -337,11 +337,11 @@ function _simpleads_date_diff($node) {
   if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
     $end_time = $node->field_ad_end_date[$node->language][0]['value'];
   }
-    
+
   $ustart_time = strtotime($start_time);
   $uend_time = strtotime($end_time);
   $now = time();
-    
+
   if ($ustart_time == '' && $uend_time != '') {
     return floor(($uend_time - $now) / 86400);
   }
@@ -362,7 +362,7 @@ function _simpleads_date_diff($node) {
  */
 function _simpleads_get_statistics($table, $nid) {
   $stats = array();
-  
+
   $stats['Last Hour'] = db_select($table, 'sc')
   ->where("FROM_UNIXTIME(sc.timestamp) <= NOW() AND FROM_UNIXTIME(sc.timestamp) >= SUBDATE(NOW(), INTERVAL 1 HOUR)")->condition("sc.nid", $nid)
   ->countQuery()->execute()->fetchField() . '/' . db_select($table, 'sc')
@@ -412,6 +412,6 @@ function _simpleads_get_statistics($table, $nid) {
   ->countQuery()->execute()->fetchField();
 
   $stats['All Time'] = db_select($table)->condition('nid', $nid)->countQuery()->execute()->fetchField() . '/' . db_select($table)->condition('nid', $nid)->groupBy('ip_address')->countQuery()->execute()->fetchField();
-  
+
   return $stats;
 }

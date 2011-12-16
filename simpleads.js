@@ -7,16 +7,23 @@
   Drupal.behaviors.simpleads = {
     attach: function(context) {
       var ad_type = $('#edit-field-ad-type select[id^=edit-field-ad-type]').val();
-      _simpelads_switch_form(ad_type);
+      var ad_text_format = $('#field-ad-text-add-more-wrapper select[id^=edit-field-ad-text]').val();
+      _simpelads_switch_form(ad_type, ad_text_format);
       $('#edit-field-ad-type select[id^=edit-field-ad-type]').change(function(){
-        _simpelads_switch_form($(this).val());
+        ad_type = $(this).val();
+        _simpelads_switch_form(ad_type, ad_text_format);
+      });
+      _simpelads_switch_form(ad_type, ad_text_format);
+      $('#field-ad-text-add-more-wrapper select[id^=edit-field-ad-text]').change(function(){
+        ad_text_format = $(this).val();
+        _simpelads_switch_form(ad_type, ad_text_format);
       });
       var ad_block_limit = $('form#block-admin-configure #edit-ads-limit').val();
+      var ad_block_rotation_type = $('form#block-admin-configure #edit-ads-rotation-type').val();
       _simpelads_switch_block_settings(ad_block_limit, false);
       $('form#block-admin-configure #edit-ads-limit').change(function(){
         _simpelads_switch_block_settings($(this).val(), false);
       });
-      var ad_block_rotation_type = $('form#block-admin-configure #edit-ads-rotation-type').val();
       _simpelads_switch_block_settings(ad_block_rotation_type, 'delay');
       $('form#block-admin-configure #edit-ads-rotation-type').change(function(){
         _simpelads_switch_block_settings($(this).val(), 'delay');
@@ -28,28 +35,40 @@
 /**
  * Show/hide form elements.
  */
-function _simpelads_switch_form(ad_type) {
+function _simpelads_switch_form(ad_type, p1) {
   (function ($) {
+    el_image = $('form#simpleads-node-form #edit-field-ad-image');
+    el_url = $('form#simpleads-node-form #edit-field-ad-url');
+    el_url_target = $('form#simpleads-node-form #edit-field-ad-url-taget');
+    el_flash = $('form#simpleads-node-form #edit-field-ad-flash');
+    el_text = $('form#simpleads-node-form #edit-field-ad-text');
     if (ad_type == 'graphic') {
-      $('form#simpleads-node-form #edit-field-ad-image').show();
-      $('form#simpleads-node-form #edit-field-ad-url').show();
-      $('form#simpleads-node-form #edit-field-ad-url-taget').show();
-      $('form#simpleads-node-form #edit-field-ad-flash').hide();
-      $('form#simpleads-node-form #edit-field-ad-text').hide();
+      el_image.show();
+      el_url.show();
+      el_url_target.show();
+      el_flash.hide();
+      el_text.hide();
     }
     else if (ad_type == 'text') {
-      $('form#simpleads-node-form #edit-field-ad-image').hide();
-      $('form#simpleads-node-form #edit-field-ad-url').hide();
-      $('form#simpleads-node-form #edit-field-ad-url-taget').hide();
-      $('form#simpleads-node-form #edit-field-ad-flash').hide();
-      $('form#simpleads-node-form #edit-field-ad-text').show();
+      el_text.show();
+      el_image.hide();
+      el_url.hide();
+      el_flash.hide();
+      if (p1 == 'plain_text') {
+        el_url.show();
+        el_url_target.show();
+      }
+      else {
+        el_url.hide();
+        el_url_target.hide();
+      }
     }
     else if (ad_type == 'flash') {
-      $('form#simpleads-node-form #edit-field-ad-image').hide();
-      $('form#simpleads-node-form #edit-field-ad-url').show();
-      $('form#simpleads-node-form #edit-field-ad-url-taget').show();
-      $('form#simpleads-node-form #edit-field-ad-flash').show();
-      $('form#simpleads-node-form #edit-field-ad-text').hide();
+      el_url.show();
+      el_url_target.show();
+      el_flash.show();
+      el_image.hide();
+      el_text.hide();
     }
   }(jQuery));
 }
@@ -60,17 +79,19 @@ function _simpelads_switch_form(ad_type) {
 function _simpelads_switch_block_settings(ad_setting_value, setting) {
   (function ($) {
     if (setting == false) {
+      ad_rotation = $('form#block-admin-configure #ads_rotation_settings');
       if (ad_setting_value != 1)
-        $('form#block-admin-configure #ads_rotation_settings').show();
+        ad_rotation.show();
       else
-        $('form#block-admin-configure #ads_rotation_settings').hide();
+        ad_rotation.hide();
     }
     else {
       if (setting == 'delay') {
+        ad_rotation_delay = $('form#block-admin-configure #ads_rotation_settings .form-item-ads-rotation-delay');
         if (ad_setting_value == 0)
-          $('form#block-admin-configure #ads_rotation_settings .form-item-ads-rotation-delay').hide();
+          ad_rotation_delay.hide();
         else
-          $('form#block-admin-configure #ads_rotation_settings .form-item-ads-rotation-delay').show();
+          ad_rotation_delay.show();
       }
     }
   }(jQuery));

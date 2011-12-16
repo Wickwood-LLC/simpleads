@@ -24,26 +24,25 @@ function simpleads_install() {
 
   $type = node_type_set_defaults($type);
   node_type_save($type);
-  
+
   $vocabulary = (object) array(
     'name' => st('Ad Groups'),
     'description' => st('Ad Groups'),
     'machine_name' => 'ad_groups',
     'help' => '',
-
   );
   taxonomy_vocabulary_save($vocabulary);
-  
+
   $ad_groups = array(
     st('Sidebar Ads'), st('Content Ads'),
   );
-  
+
   $ad_group_vid = db_select('taxonomy_vocabulary', 'tv')
   ->fields('tv', array('vid'))
   ->condition('machine_name', 'ad_groups')
   ->execute()
   ->fetchField();
-  
+
   foreach ($ad_groups as $name) {
     $term = new stdClass;
     $term->name = $name;
@@ -189,7 +188,6 @@ function simpleads_install() {
     'bundle' => 'simpleads',
     'description' => st('Please select Ad type.'),
     'required' => TRUE,
-    
     'default_value' => array(
       0 => array(
         'value' => 'graphic',
@@ -204,7 +202,6 @@ function simpleads_install() {
       'user_register_form' => FALSE,
     ),
     'user_register_form' => FALSE,
-    
     'widget' => array(
       'active' => 1,
       'type' => 'options_select',
@@ -485,7 +482,7 @@ function simpleads_install() {
     ),
   );
   field_create_instance($instance);
-  
+
   user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks'));
 }
 
@@ -510,7 +507,7 @@ function simpleads_uninstall() {
   field_delete_field('field_ad_end_date');
   field_delete_field('field_ad_url_taget');
   node_type_delete('simpleads');
-  
+
   $vid = db_select('taxonomy_vocabulary', 'tv')
   ->fields('tv', array('vid'))
   ->condition('machine_name', 'ad_groups')
@@ -558,7 +555,7 @@ function simpleads_schema() {
       'aid' => array('aid'),
     ),
   );
-  
+
   $schema['simpleads_clicks'] = array(
     'description' => 'Stores Ad Clicks',
     'fields' => array(
@@ -593,7 +590,7 @@ function simpleads_schema() {
       'aid' => array('aid'),
     ),
   );
-  
+
   $schema['simpleads_blocks'] = array(
     'description' => 'Stores Ad Blocks',
     'fields' => array(
@@ -618,6 +615,6 @@ function simpleads_schema() {
       'tid' => array('tid'),
     ),
   );
-  
+
   return $schema;
 }

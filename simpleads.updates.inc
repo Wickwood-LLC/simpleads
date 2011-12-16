@@ -221,7 +221,6 @@ function simpleads_update_7001(&$sandbox) {
     'bundle' => 'simpleads',
     'description' => st('Please select Ad type.'),
     'required' => TRUE,
-    
     'default_value' => array(
       0 => array(
         'value' => 'graphic',
@@ -236,7 +235,6 @@ function simpleads_update_7001(&$sandbox) {
       'user_register_form' => FALSE,
     ),
     'user_register_form' => FALSE,
-    
     'widget' => array(
       'active' => 1,
       'type' => 'options_select',
@@ -341,7 +339,7 @@ function simpleads_update_7002(&$sandbox) {
  */
 function simpleads_update_7003(&$sandbox) {
   db_change_field('simpleads_blocks', 'settings', 'settings', array('type' => 'text', 'not null' => TRUE, 'description' => 'Serialized data (settings)'));
-  
+
   $instance = array(
     'field_name' => 'field_ad_text',
     'entity_type' => 'node',
@@ -349,12 +347,10 @@ function simpleads_update_7003(&$sandbox) {
     'bundle' => 'simpleads',
     'description' => st('Enter your text Ad. If you would like to add embeded code or formatted text, please configure settings of this field on content type field settings page'),
     'required' => FALSE,
-
     'settings' => array(
       'rows' => 5,
       'text_processing' => 1,
     ),
-
     'widget' => array(
       'type' => 'text_textarea',
       'settings' => array(
