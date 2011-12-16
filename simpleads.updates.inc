@@ -156,7 +156,7 @@ function simpleads_update_7001(&$sandbox) {
     'entity_type' => 'node',
     'label' => st('Text Ad'),
     'bundle' => 'simpleads',
-    'description' => st('Enter your text Ad. If you would like to add embeded code or formatted text, please configure settings of this field on content type field settings page'),
+    'description' => st('Enter your text ad. If you would like to embed media, please configure WYSIWYG editor and input format settings.'),
     'required' => FALSE,
 
     'settings' => array(
@@ -345,7 +345,7 @@ function simpleads_update_7003(&$sandbox) {
     'entity_type' => 'node',
     'label' => st('Text Ad'),
     'bundle' => 'simpleads',
-    'description' => st('Enter your text Ad. If you would like to add embeded code or formatted text, please configure settings of this field on content type field settings page'),
+    'description' => st('Enter your text ad. If you would like to embed media, please configure WYSIWYG editor and input format settings.'),
     'required' => FALSE,
     'settings' => array(
       'rows' => 5,
