@@ -130,7 +130,7 @@ function _simpelads_load(elem, tid, num, img_loader) {
     element.data('simpleads_rotator', this);
     this.init = function (element, options) {
       this.options = $.extend({}, $.simpleads_rotator.defaultOptions, options);
-      $.simpleads_globals.pos[options.random_num] = 0;
+      $.simpleads_globals.pos[options.delta] = 0;
       simpleads_start(element, this.options);
     };
     this.init(element, options);
@@ -145,15 +145,15 @@ function _simpelads_load(elem, tid, num, img_loader) {
   function run_rotation(element, options) {
     elem_id = element.attr('id');
     total_ads = $('#' + elem_id + " > div").size();
-    if ($.simpleads_globals.pos[options.random_num] == (total_ads - 1)) {
-      $.simpleads_globals.pos[options.random_num] = 0;
+    if ($.simpleads_globals.pos[options.delta] == (total_ads - 1)) {
+      $.simpleads_globals.pos[options.delta] = 0;
     }
     else {
-      $.simpleads_globals.pos[options.random_num]++;
+      $.simpleads_globals.pos[options.delta]++;
     }
 
     $('#' + elem_id + " div").hide();
-    var simpleads_elem = $('#' + elem_id + " > div:eq(" + $.simpleads_globals.pos[options.random_num] + ")");
+    var simpleads_elem = $('#' + elem_id + " > div:eq(" + $.simpleads_globals.pos[options.delta] + ")");
     
     if (options.rotation_type == 1) {
       simpleads_elem.show();
@@ -175,7 +175,7 @@ function _simpelads_load(elem, tid, num, img_loader) {
   $.simpleads_rotator.defaultOptions = {
     rotation_type: 1,
     delay: 5,
-    random_num: 0
+    delta: 0
   };
 
 }(jQuery));
