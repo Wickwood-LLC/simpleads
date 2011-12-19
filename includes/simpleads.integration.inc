@@ -150,9 +150,11 @@ function template_preprocess_views_simpleads(&$vars) {
 
   if (count($rows) > 0) {
     foreach ($rows as $i => $data) {
-      $tid = $data->field_field_ad_category[0]['raw']['tid'];
-      $node = $data->_field_data['nid']['entity'];
-      $ads[] = _simpleads_ads_data($node);
+      if (isset($data->field_field_ad_category[0])) {
+        $tid = $data->field_field_ad_category[0]['raw']['tid'];
+        $node = $data->_field_data['nid']['entity'];
+        $ads[] = _simpleads_ads_data($node);
+      }
     }
   };
 
