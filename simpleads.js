@@ -130,7 +130,7 @@ function _simpelads_load(elem, tid, num, img_loader) {
     element.data('simpleads_rotator', this);
     this.init = function (element, options) {
       this.options = $.extend({}, $.simpleads_rotator.defaultOptions, options);
-      $.simpleads_globals.pos[options.tid] = 0;
+      $.simpleads_globals.pos[options.random_num] = 0;
       simpleads_start(element, this.options);
     };
     this.init(element, options);
@@ -144,17 +144,16 @@ function _simpelads_load(elem, tid, num, img_loader) {
 
   function run_rotation(element, options) {
     elem_id = element.attr('id');
-    var temp = '';
     total_ads = $('#' + elem_id + " > div").size();
-    if ($.simpleads_globals.pos[options.tid] == (total_ads - 1)) {
-      $.simpleads_globals.pos[options.tid] = 0;
+    if ($.simpleads_globals.pos[options.random_num] == (total_ads - 1)) {
+      $.simpleads_globals.pos[options.random_num] = 0;
     }
     else {
-      $.simpleads_globals.pos[options.tid]++;
+      $.simpleads_globals.pos[options.random_num]++;
     }
 
     $('#' + elem_id + " div").hide();
-    var simpleads_elem = $('#' + elem_id + " > div:eq(" + $.simpleads_globals.pos[options.tid] + ")");
+    var simpleads_elem = $('#' + elem_id + " > div:eq(" + $.simpleads_globals.pos[options.random_num] + ")");
     
     if (options.rotation_type == 1) {
       simpleads_elem.show();
@@ -171,12 +170,12 @@ function _simpelads_load(elem, tid, num, img_loader) {
   function simpleads_start(element, options) {
     run_rotation(element, options); 
     setInterval(function(){run_rotation(element, options);}, options.delay);
-  };
+  }
 
   $.simpleads_rotator.defaultOptions = {
     rotation_type: 1,
     delay: 5,
-    tid: 0
+    random_num: 0
   };
 
 }(jQuery));

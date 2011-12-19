@@ -13,7 +13,7 @@
     $("div#<?php print $settings['block_delta']; ?>").simpleads_rotator({
       rotation_type: <?php print $settings['ads_rotation_type']; ?>, 
       delay: <?php print $settings['ads_rotation_delay'] * 1000; ?>, 
-      tid: <?php print $tid; ?>
+      random_num: <?php print ($tid + rand(1, 99999999)); ?>
     });
   });
 }(jQuery));

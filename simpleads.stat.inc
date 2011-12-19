@@ -2,61 +2,62 @@
 
 /**
  * @file
- * SimpleAds Helper functions.
+ * SimpleAds Statistics.
  */
 
 /**
  * Callback for Ad Statistics page.
  */
 function _simpleads_stat_tab($nid) {
-  $result = "";
+  $result = " ";
 
   $form_after_stats = drupal_render(drupal_get_form('_simpleads_after_stats_form'));
 
   if (is_numeric($nid)) {
+    $node = _simpleads_node_load($nid);
+    if ($node) {
+      $stats = _simpleads_get_statistics('simpleads_clicks', $nid);
+      $stat_results = array();
+      foreach ($stats as $key => $val) {
+        $header[]['data'] = t('@block_name', array('@block_name' => $key));
+        $stat_results[]['data'] = $val;
+      }
 
-    $stats = _simpleads_get_statistics('simpleads_clicks', $nid);
-    $stat_results = array();
-    foreach ($stats as $key => $val) {
-      $header[]['data'] = t('@block_name', array('@block_name' => $key));
-      $stat_results[]['data'] = $val;
+      $clicks[] = $stat_results;
+
+      $stats = _simpleads_get_statistics('simpleads_impressions', $nid);
+      $stat_results = array();
+      foreach ($stats as $key => $val) {
+        $stat_results[]['data'] = $val;
+      }
+
+      $impressions[] = $stat_results;
+
+      $term_name = "";
+      $op_links = l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads')));
+      if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
+        $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+        $term_name = $term->name;
+      }
+      elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
+        $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
+        $term_name = $term->name;
+      }
+
+      $days_left_str = "";
+      $days_left = _simpleads_date_diff($node);
+      if ($days_left && $days_left > 0) {
+        $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
+      }
+
+      $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
+      $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
+      $result .= _simpleads_stats_info($node);
+
+      $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
+      $result .= theme('table', array('header' => $header, 'rows' => $impressions, 'caption' => t('Ad Impressions / Unique Impressions')));
+      $result .= $form_after_stats;
     }
-
-    $clicks[] = $stat_results;
-
-    $stats = _simpleads_get_statistics('simpleads_impressions', $nid);
-    $stat_results = array();
-    foreach ($stats as $key => $val) {
-      $stat_results[]['data'] = $val;
-    }
-
-    $impressions[] = $stat_results;
-
-    $node = node_load($nid);
-
-    $term_name = "";
-    $op_links = l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads')));
-    if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
-      $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
-      $term_name = $term->name;
-    }
-    elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
-      $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
-      $term_name = $term->name;
-    }
-
-    $days_left_str = "";
-    $days_left = _simpleads_date_diff($node);
-    if ($days_left && $days_left > 0) {
-      $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
-    }
-
-    $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
-    $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
-
-    $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
-    $result .= theme('table', array('header' => $header, 'rows' => $impressions, 'caption' => t('Ad Impressions / Unique Impressions')));
-    $result .= $form_after_stats;
   }
 
   return $result;
@@ -82,13 +83,6 @@ function _simpleads_after_listing_form() {
     '#markup' => '',
   );
   return $form;
-}
-
-/**
- * Redirect to Add new Ad page.
- */
-function _simpleads_new_add() {
-  drupal_goto('node/add/simpleads', array('query' => array('destination' => 'admin/content/simpleads')));
 }
 
 /**
@@ -237,33 +231,38 @@ function _simpleads_listing() {
   $rows = array();
   foreach ($results as $record) {
 
-    $node = node_load($record->nid);
-    $term_name = "";
-    if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
-      $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
-      $term_name = $term->name;
-    }
-    elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
-      $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
-      $term_name = $term->name;
-    }
+    $node = _simpleads_node_load($record->nid);
+    if ($node) {
+      $term_name = "";
+      if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
+        $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+        $term_name = $term->name;
+      }
+      elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
+        $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
+        $term_name = $term->name;
+      }
 
-    $rows[] = array(
-      array(
-        'data' => l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE)),
-      ),
-      array(
-        'data' => !empty($term_name) ? $term_name : '',
-      ),
-      array(
-        'data' => _simpleads_statuses($node),
-      ),
-      array(
-        'data' => l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
-                  l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads'))) . ' &nbsp;&nbsp; ' .
-                  l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads'))),
-      ),
-    );
+      $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
+      $ad_title .= _simpleads_stats_info($node);
+
+      $rows[] = array(
+        array(
+          'data' => $ad_title,
+        ),
+        array(
+          'data' => !empty($term_name) ? $term_name : '',
+        ),
+        array(
+          'data' => _simpleads_statuses($node),
+        ),
+        array(
+          'data' => l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
+                    l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads'))) . ' &nbsp;&nbsp; ' .
+                    l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads'))),
+        ),
+      );
+    }
   }
   return $filter_form . theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('There are no Ads'))) . theme('pager') . $form_after_listing;
 }

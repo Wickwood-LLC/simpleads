@@ -5,6 +5,10 @@
  * SimpleAds module.
  */
 
+include("includes/simpleads.helper.inc");
+include("includes/simpleads.filter.inc");
+include("includes/simpleads.integration.inc");
+
 /**
  * Implements hook_menu().
  */
@@ -44,7 +48,14 @@ function simpleads_menu() {
     'access callback' => '_simpleads_access_callback',
     'weight' => 15,
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'simpleads.stat.inc',
+  );
+
+  $items['admin/content/simpleads/create_ad_group'] = array(
+    'title' => 'Create new Ad Group',
+    'page callback' => '_simpleads_new_group_add',
+    'access callback' => '_simpleads_access_callback',
+    'weight' => 15,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   $items['simpleads/redirect/%'] = array(
@@ -92,21 +103,6 @@ function simpleads_permission() {
 function simpleads_node_access($node, $op, $account) {
   if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('administer nodes', $account)) {
     return NODE_ACCESS_DENY;
-  }
-}
-
-/**
- * Implements hook_node_load().
- */
-function simpleads_node_load($nodes, $types) {
-  global $user;
-  // Count impressions
-  if (user_access('count ad impressions')) {
-    foreach ($nodes as $node) {
-      if ($node->type == 'simpleads' && $user->uid != 1) {
-        _simpleads_save_impression($node->nid);
-      }
-    }
   }
 }
 
@@ -261,26 +257,25 @@ function simpleads_block_configure($delta = '') {
         '#title' => t('Ad height'),
         '#default_value' => check_plain($data['ads_height']),
       );
+      $order_options = array();
+      $order_options_all = module_invoke_all('simpleads_order_info');
+      if (count($order_options_all) > 0) {
+        foreach ($order_options_all as $delta => $name) {
+          $order_options[$delta] = check_plain($name);
+        }
+      }
       $form['ads_order'] = array(
         '#type' => 'select',
         '#title' => t('Ads order'),
-        '#default_value' => isset($data['ads_order']) ? $data['ads_order'] : 0,
-        '#options' => array(
-          0 => t('Random'),
-          1 => t('Order by created date DESC'),
-          2 => t('Order by modifed date DESC'),
-          3 => t('Order by node title ASC'),
-        ),
+        '#default_value' => isset($data['ads_order']) ? $data['ads_order'] : 'random',
+        '#options' => $order_options,
       );
+      $effects = _simpleads_rotation_effects();
       $form['ads_rotation_type'] = array(
         '#type' => 'select',
         '#title' => t('Ads auto rotation type'),
         '#default_value' => isset($data['ads_rotation_type']) ? $data['ads_rotation_type'] : 0,
-        '#options' => array(
-          0 => t('None'),
-          1 => t('Default'),
-          2 => t('Fast FadeIn'),
-        ),
+        '#options' => $effects,
         '#prefix' => '<div id="ads_rotation_settings">',
       );
       $form['ads_rotation_delay'] = array(
@@ -323,18 +318,79 @@ function simpleads_block_save($delta = '', $edit = array()) {
 }
 
 /**
- * Implements hook_cron().
+ * Menu access callback.
  */
-function simpleads_cron() {
-
-  $ads = db_select('node', 'n')->fields('n')
-  ->condition('n.type', 'simpleads')
-  ->execute();
-
-  foreach ($ads as $ad) {
-    $node = node_load($ad->nid);
-    _simpleads_activate_deactive_ad($node);
+function _simpleads_access_callback() {
+  global $user;
+  if (user_access('create simpleads content') || (user_access('administer nodes') && user_access('bypass node access'))) {
+    return TRUE;
   }
+}
+
+/**
+ * Menu callback.
+ * Callback for AJAX call. Returns list of ads.
+ *
+ * @param int $tid
+ *   Term ID (Ad group ID)
+ *
+ * @param int $limit
+ *   Number of Ads to retreive.
+ *
+ * @return string
+ *   HTML tags (<a href><img></a>).
+ */
+function _simpleads_show_ads($tid, $limit) {
+  if (is_numeric($tid)) {
+    $nodes = _simpleads_load_ads($tid, $limit);
+    print _simpleads_render_ajax_template($nodes, $tid, $limit);
+  }
+  exit;
+}
+
+/**
+ * Menu callback.
+ * Redirect Ads.
+ * If user is Admin -> redirect to Ad edit page, otherwise redirect to target URL.
+ */
+function _simpleads_redirect($nid) {
+  global $user;
+  if (is_numeric($nid)) {
+    $node = node_load($nid);
+    $url = "";
+    if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
+      $url = $node->field_ad_url[$node->language][0]['value'];
+      if (user_access('administer nodes')) {
+        drupal_goto('node/' . $node->nid);
+      }
+      else {
+        if (user_access('count ad clicks')) {
+          _simpleads_save_click($node->nid);
+        }
+        header("Location: " . $url);
+      }
+    }
+    else {
+      return t('URL Address is not specified');
+    }
+  }
+  return ' ';
+}
+
+/**
+ * Menu callback.
+ * Redirect to SimpleAds node creation page.
+ */
+function _simpleads_new_add() {
+  drupal_goto('node/add/simpleads', array('query' => array('destination' => 'admin/content/simpleads')));
+}
+
+/**
+ * Menu callback.
+ * Redirect to add new Ad Group taxonomy term page.
+ */
+function _simpleads_new_group_add() {
+  drupal_goto('admin/structure/taxonomy/ad_groups/add', array('query' => array('destination' => 'admin/content/simpleads')));
 }
 
 /**
@@ -375,6 +431,9 @@ function simpleads_theme($existing, $type, $theme, $path) {
       'variables' => array('ad' => NULL, 'settings' => NULL),
       'path' => $path . '/templates',
       'template' => 'simpleads_flash_element',
+      'preprocess functions' => array(
+        'simpleads_preprocess_simpleads_flash_element',
+      ),
     ),
     'simpleads_filter_dashboard' => array(
       'variables' => array('form' => NULL),
@@ -410,7 +469,7 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
   $link_attributes = array();
   $image_attributes = array();
   $vars = _simpleads_theme_attributes_init($vars);
-
+  _simpleads_increase_impression($vars['ad']['nid']);
   // Image attributes
   $image_attributes['path'] = $vars['ad']['image_uri'];
   $image_attributes['alt'] = check_plain($vars['ad']['alt']);
@@ -437,7 +496,7 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
 function simpleads_preprocess_simpleads_text_element(&$vars) {
   $link_attributes = array();
   $vars = _simpleads_theme_attributes_init($vars);
-
+  _simpleads_increase_impression($vars['ad']['nid']);
   // Link attributes
   $link_attributes['html'] = TRUE;
   if ($vars['ad']['target']) {
@@ -454,555 +513,62 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
   $vars['text_ad'] = $text_ad;
 }
 
-// Init theme attributes
-function _simpleads_theme_attributes_init($vars) {
-  $vars['attributes_array'] = array();
-  $vars['title_attributes_array'] = array();
-  $vars['content_attributes_array'] = array();
-  $vars['classes_array'] = array('');
-  return $vars;
+/**
+ * Preprocess for simpleads_flash_element.tpl.php
+ */
+function simpleads_preprocess_simpleads_flash_element(&$vars) {
+  $vars = _simpleads_theme_attributes_init($vars);
+  _simpleads_increase_impression($vars['ad']['nid']);
 }
 
 /**
- * Menu access callback.
+ * Implements hook_simpleads_order_info().
  */
-function _simpleads_access_callback() {
-  global $user;
-  if (user_access('create simpleads content') || (user_access('administer nodes') && user_access('bypass node access'))) {
-    return TRUE;
-  }
+function simpleads_simpleads_order_info() {
+  return array(
+    'random' => t('Random'),
+    'order_created_desc' => t('Order by created date DESC'),
+    'order_modified_desc' => t('Order by modifed date DESC'),
+    'order_title_asc' => t('Order by node title ASC'),
+  );
 }
 
 /**
- * Helper function.
- * Get block settings by Ad group id.
+ * Implements hook_simpleads_order().
  */
-function _simpleads_adgroup_settings($tid) {
-  if (is_numeric($tid)) {
-    $block = db_select('simpleads_blocks', 'sb')->fields('sb')->condition('sb.tid', $tid)->execute()->fetchObject();
-    return unserialize($block->settings);
+function simpleads_simpleads_order($delta = '', $term_ids, $limit) {
+  $query = db_select('node', 'n');
+  $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+  $query->fields('n', array('nid'));
+  $query->condition('n.type', 'simpleads');
+  $query->condition('ti.tid', $term_ids, 'IN');
+  if ($delta == 'random') {
+    $query->orderRandom();
   }
-  else {
-    return FALSE;
+  if ($delta == 'order_created_desc') {
+    $query->orderBy('n.created', 'DESC');
   }
+  if ($delta == 'order_modified_desc') {
+    $query->orderBy('n.changed', 'DESC');
+  }
+  if ($delta == 'order_title_asc') {
+    $query->orderBy('n.title', 'ASC');
+  }
+  $query->range(0, $limit);
+  return $query->execute();
 }
 
 /**
- * Helper function.
- *
- * @param $tid
- *   Term ID (Ad group ID)
- *
- * @param $limit
- *   Numer of ads to return.
- *
- * @return
- *   Returns array of Ads.
+ * Implements hook_cron().
  */
-function _simpleads_load_ads($tid, $limit) {
+function simpleads_cron() {
 
-  $result = array();
-  $term_ids = array();
-
-  if (is_array($tid))
-    $term_ids = $tid;
-  else
-    $term_ids[] = $tid;
-
-  if (is_numeric($limit)) {
-
-    $ad_settings = _simpleads_adgroup_settings($tid);
-
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $term_ids, 'IN');
-    if (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 1) {
-      $query->orderBy('n.created', 'DESC');
-    }
-    elseif (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 2) {
-      $query->orderBy('n.changed', 'DESC');
-    }
-    elseif (isset($ad_settings['ads_order']) && $ad_settings['ads_order'] == 3) {
-      $query->orderBy('n.title', 'ASC');
-    }
-    else {
-      $query->orderRandom();
-    }
-    $query->range(0, $limit);
-
-    $results = $query->execute();
-
-    while ($record = $results->fetchAssoc()) {
-      $node = node_load($record['nid']);
-      $type = 'graphic';
-      if (isset($node->field_ad_type[$node->language]) && !empty($node->field_ad_type[$node->language][0]['value'])) {
-        $type = $node->field_ad_type[$node->language][0]['value'];
-      }
-      $destination_url = "";
-      if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
-        $destination_url = $node->field_ad_url[$node->language][0]['value'];
-      }
-      $image = "";
-      $image_uri = "";
-      $alt = "";
-      if (isset($node->field_ad_image[$node->language]) && !empty($node->field_ad_image[$node->language][0]['uri'])) {
-        $image = file_create_url($node->field_ad_image[$node->language][0]['uri']);
-        $alt = $node->field_ad_image[$node->language][0]['alt'];
-        $image_uri = $node->field_ad_image[$node->language][0]['uri'];
-      }
-      $flash = "";
-      if (isset($node->field_ad_flash[$node->language]) && !empty($node->field_ad_flash[$node->language][0]['uri'])) {
-        $flash = file_create_url($node->field_ad_flash[$node->language][0]['uri']);
-      }
-      $text_ad = "";
-      $text_format = "plain_text";
-      if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['value'])) {
-        if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['format'])) {
-          $text_format = $node->field_ad_text[$node->language][0]['format'];
-          $text_ad = check_markup($node->field_ad_text[$node->language][0]['value'], $text_format);
-        }
-        else {
-          $text_ad = strip_tags($node->field_ad_text[$node->language][0]['value']);
-        }
-      }
-      $target = TRUE;
-      if (isset($node->field_ad_url_taget[$node->language]) && $node->field_ad_url_taget[$node->language][0]['value'] == 0) {
-        $target = FALSE;
-      }
-
-      $result[] = array(
-        'type' => $type,
-        'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
-        'destination_url' => $destination_url,
-        'target' => $target,
-        'image' => $image,
-        'image_uri' => $image_uri,
-        'alt' => $alt,
-        'nid' => $node->nid,
-        'text' => $text_ad,
-        'text_format' => $text_format,
-        'flash' => $flash,
-      );
-    }
-  }
-  return $result;
-}
-
-/**
- * Callback for AJAX call. Returns list of ads.
- *
- * @param $tid
- *   Term ID (Ad group ID)
- *
- * @param $limit
- *   Number of Ads to retreive.
- *
- * @return
- *   HTML tags (<a href><img></a>).
- */
-function _simpleads_show_ads($tid, $limit) {
-  $result = "";
-  $settings = array();
-  $count = 0;
-  if (is_numeric($tid)) {
-    $get_ads = _simpleads_load_ads($tid, $limit);
-    foreach ($get_ads as $ad) {
-      $ad_block = db_select('simpleads_blocks', 'sb')->fields('sb', array('settings'))->condition('sb.tid', $tid)->execute()->fetchField();
-      $ad_setting = unserialize($ad_block);
-      if ($ad['type'] == 'graphic') {
-        $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting));
-      }
-      elseif ($ad['type'] == 'text') {
-        $result .= theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting));
-      }
-      else {
-        $result .= theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting));
-      }
-      $count++;
-    }
-    $settings = $ad_settings = _simpleads_adgroup_settings($tid);
-  }
-  print theme('simpleads_ajax_call', array('content' => $result, 'total_ads' => $count, 'tid' => $tid, 'settings' => $settings));
-  exit;
-}
-
-/**
- * Helper function.
- * Redirect Ads.
- * If user is Admin -> redirect to Ad edit page, otherwise redirect to target URL.
- */
-function _simpleads_redirect($nid) {
-  global $user;
-  if (is_numeric($nid)) {
-    $node = node_load($nid);
-    $url = "";
-    if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
-      $url = $node->field_ad_url[$node->language][0]['value'];
-      if (user_access('administer nodes')) {
-        drupal_goto('node/' . $node->nid);
-      }
-      else {
-        if (user_access('count ad clicks')) {
-          _simpleads_save_click($node->nid);
-        }
-        header("Location: " . $url);
-      }
-    }
-    else {
-      return t('URL Address is not specified');
-    }
-  }
-  return ' ';
-}
-
-
-/**
- * Helper function.
- * Return node id from arguments (used in hook_menu).
- */
-function simpleadsid_to_arg($arg) {
-  if ($arg == '%') {
-    return 'none';
-  }
-  else {
-    return $arg;
-  }
-}
-
-/**
- * Helper function.
- * Save Ad clicks.
- */
-function _simpleads_save_click($nid) {
-  db_insert('simpleads_clicks')
-  ->fields(array(
-    'nid' => $nid,
-    'timestamp' => time(),
-    'ip_address' => ip_address(),
-  ))
+  $ads = db_select('node', 'n')->fields('n')
+  ->condition('n.type', 'simpleads')
   ->execute();
-}
 
-/**
- * Helper function.
- * Delete Ad clicks.
- */
-function _simpleads_delete_click($nid) {
-  db_delete('simpleads_clicks')
-  ->condition('nid', $nid)
-  ->execute();
-}
-
-/**
- * Helper function.
- * Save Ad impressions.
- */
-function _simpleads_save_impression($nid) {
-  db_insert('simpleads_impressions')
-  ->fields(array(
-    'nid' => $nid,
-    'timestamp' => time(),
-    'ip_address' => ip_address(),
-  ))
-  ->execute();
-}
-
-/**
- * Helper function.
- * Delete Ad impressions.
- */
-function _simpleads_delete_impression($nid) {
-  db_delete('simpleads_impressions')
-  ->condition('nid', $nid)
-  ->execute();
-}
-
-/**
- * Helper function.
- * Activate/deactive Ads.
- */
-function _simpleads_activate_deactive_ad($node, $who = 'cron') {
-  $start_time = '';
-  $end_time = '';
-
-  if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
-    $start_time = $node->field_ad_start_date[$node->language][0]['value'];
-  }
-  if (isset($node->field_ad_end_date[$node->language]) && !empty($node->field_ad_end_date[$node->language][0]['value'])) {
-    $end_time = $node->field_ad_end_date[$node->language][0]['value'];
-  }
-
-  $start_time = (int)strtotime($start_time);
-  $end_time = (int)strtotime($end_time);
-
-  $now = time();
-
-  if ($start_time != '' && $end_time != '') {
-
-    if ($now >= $start_time && $end_time > $now) {
-      $node->status = 1;
-      if ($who == 'cron') {
-        node_save($node);
-      }
-    }
-    elseif ($end_time <= $now) {
-      $node->status = 0;
-      if ($who == 'cron') {
-        node_save($node);
-      }
-    }
-  }
-  elseif ($start_time == '' && $end_time != '') {
-
-    if ($end_time <= $now) {
-      $node->status = 0;
-      if ($who == 'cron') {
-        node_save($node);
-      }
-    }
-    else {
-      $node->status = 1;
-      if ($who == 'cron') {
-        node_save($node);
-      }
-    }
-  }
-  else {
-
-    if ($now >= $start_time && $start_time != '') {
-      $node->status = 1;
-        if ($who == 'cron') {
-          node_save($node);
-        }
-    }
-  }
-  if ($who != 'cron') {
-    return $node;
-  }
-}
-
-/**
- * Implements hook_filter_info().
- */
-function simpleads_filter_info() {
-  $filters = array();
-  $filters['simpleads'] = array(
-    'title' => t('SimpleAds Filter'),
-    'description' => t('Substitutes [ads:TID limit:N] with Ad block.'),
-    'process callback' => '_simpleads_filter_process',
-    'tips callback' => '_simpleads_filter_tips',
-    'weight' => -1,
-  );
-  return $filters;
-}
-
-/**
- * Filter Process callback.
- */
-function _simpleads_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
-  if (preg_match_all('/\[ads(\:(.+))?( .+)?\]/isU', $text, $matches_code)) {
-    foreach ($matches_code[0] as $ci => $code) {
-      $ad = array(
-        'tid' => $matches_code[2][$ci],
-        'ads_page' => '',
-        'width' => '',
-        'height' => '',
-      );
-      if ($matches_code[3][$ci] && preg_match_all('/\s+([a-zA-Z_]+)\:(\s+)?([0-9a-zA-Z\/]+)/i', $matches_code[3][$ci], $matches_attributes)) {
-        foreach ($matches_attributes[0] AS $key => $attribute) {
-          $ad[$matches_attributes[1][$key]] = $matches_attributes[3][$key];
-        }
-      }
-      // Injecting an Ad into content.
-      $content_ad = theme('simpleads_block', array('tid' => $ad['tid'], 'prefix' => 'content-' . $ci, 'ads_limit' => $ad['limit'], 'ads_page' => $ad['ads_page'], 'ads_width' => $ad['width'], 'ads_height' => $ad['height']));
-      $pattern = str_replace(array('[', ']'), array('\[', '\]'), $matches_code[0][$ci]);
-      $text = preg_replace('/' . $pattern . '/is', $content_ad, $text);
-    }
-  }
-
-  return $text;
-}
-
-/**
- * Filter Tips callback.
- */
-function _simpleads_filter_tips($filter, $format, $long = FALSE) {
-  return t('You may insert Ads with [ads:term_id limit:N] where term_id - Ad Group and N - number of Ads to display');
-}
-
-/**
- * Implements hook_wysiwyg_plugin().
- */
-function simpleads_wysiwyg_plugin($editor, $version) {
-
-  _simpleads_filter_add_settings('wysiwyg_' . $editor);
-
-  switch ($editor) {
-    case 'tinymce':
-      $plugins['simpleads'] = array(
-        'path' => drupal_get_path('module', 'simpleads') . '/editors/tinymce',
-        'filename' => 'editor_plugin.js',
-        'buttons' => array('simpleads' => t('Inject ads into content')),
-        'load' => TRUE,
-      );
-      break;
-    case 'ckeditor':
-      $plugins['simpleads'] = array(
-        'path' => drupal_get_path('module', 'simpleads') . '/editors/ckeditor/',
-        'buttons' => array('simpleads' => t('Inject ads into content')),
-        'load' => TRUE,
-      );
-      break;
-    case 'fckeditor':
-      $plugins['simpleads'] = array(
-        'path' => drupal_get_path('module', 'simpleads') . '/editors/fckeditor/',
-        'buttons' => array('simpleads' => t('Inject ads into content')),
-        'load' => TRUE,
-      );
-      break;
-  }
-
-  return $plugins;
-}
-
-/**
- *	WYSIWYG Popup page.
- */
-function _simpleads_filter_dashboard_page($editor) {
-
-  module_invoke('admin_menu', 'suppress');
-
-  switch ($editor) {
-    case 'wysiwyg_tinymce':
-      drupal_add_js(wysiwyg_get_path('tinymce') . '/jscripts/tiny_mce/tiny_mce_popup.js');
-      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/tinymce/simpleads_filter.js');
-      break;
-
-    case 'ckeditor':
-    case 'wysiwyg_ckeditor':
-      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/ckeditor/simpleads_filter_dialog.js');
-      break;
-
-    case 'fckeditor':
-    case 'wysiwyg_fckeditor':
-      drupal_add_js(drupal_get_path('module', 'simpleads') . '/editors/fckeditor/simpleads/simpleads_filter_dialog.js');
-      break;
-  }
-
-  $form = render(drupal_get_form('_simpleads_filter_form'));
-
-  print theme('simpleads_filter_dashboard', array('form' => $form));
-  exit();
-}
-
-/**
- * Return the theme name to be used when showing linkit dashboard
- */
-function _simpleads_filter_dashboard_theme() {
-  return variable_get('admin_theme', 'seven');
-}
-
-/**
- * Template preprocess function for simpleads_filter_dashboard().
- */
-function template_preprocess_simpleads_filter_dashboard(&$vars) {
-  $vars['head_title'] = t('SimpleAds Filter');
-  $vars['head'] = drupal_get_html_head();
-  $vars['help'] = theme('help');
-  $vars['language'] = $GLOBALS['language'];
-  $vars['language']->dir = $GLOBALS['language']->direction ? 'rtl' : 'ltr';
-  $vars['messages'] = isset($vars['show_messages']) ? theme('status_messages') : '';
-  $vars['css'] = drupal_add_css();
-  $vars['styles'] = drupal_get_css();
-  $vars['scripts'] = drupal_get_js();
-}
-
-/**
- * SimpleAds Filter form to insert Ads.
- */
-function _simpleads_filter_form() {
-
-  $form['simpleads_filter'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Insert Ad Block'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#attributes' => array('class' => array('clearfix')),
-  );
-
-  $ad_group_vid = db_select('taxonomy_vocabulary', 'tv')->fields('tv', array('vid'))->condition('machine_name', 'ad_groups')->execute()->fetchField();
-  $results = db_select('taxonomy_term_data', 'td')->fields('td', array('tid', 'name'))->condition('vid', $ad_group_vid)->execute();
-  $terms = array();
-  foreach ($results as $record) {
-    $terms[$record->tid] = check_plain($record->name);
-  }
-
-  $options = array();
-  for ($i = 1; $i < 11; $i++) {
-    $options[$i] = $i;
-  }
-
-  $form['simpleads_filter']['tid'] = array(
-    '#type' => 'select',
-    '#title' => t('Ad Group'),
-    '#options' => $terms,
-  );
-
-  $form['simpleads_filter']['num'] = array(
-    '#type' => 'select',
-    '#title' => t('Number of Ads to Display'),
-    '#options' => $options,
-  );
-
-  $form['insert'] = array(
-    '#type' => 'button',
-    '#value' => t('Insert'),
-    '#attributes' => array('style' => 'margin-right: 5px;'),
-  );
-
-  $form['cancel'] = array(
-    '#type' => 'button',
-    '#value' => t('Cancel'),
-  );
-
-  return $form;
-}
-
-/**
- * Implements hook_element_info_alter().
- */
-function simpleads_element_info_alter(&$types) {
-  if (isset($types['text_format']['#pre_render']) && is_array($types['text_format']['#pre_render'])) {
-    if (in_array('ckeditor_pre_render_text_format', $types['text_format']['#pre_render'])) {
-      _simpleads_filter_add_settings('ckeditor');
-    }
-  }
-}
-
-/**
- * SimpleAds Filter global JS variables.
- */
-function _simpleads_filter_add_settings($editor) {
-  static $editor_settings_added = array();
-  static $global_settings_added = FALSE;
-
-  if (!isset($editor_settings_added[$editor])) {
-    $editor_settings_added[$editor] = TRUE;
-    $settings = array(
-      'simpleads' => array('url' => array($editor => url('simpleads/dashboard/' . $editor))),
-    );
-    drupal_add_js($settings, 'setting');
-  }
-
-  if (!$global_settings_added) {
-    $global_settings_added = TRUE;
-    $settings = array(
-      'simpleads' => array(
-        'modulepath' => drupal_get_path('module', 'simpleads'),
-      ),
-    );
-    drupal_add_js($settings, 'setting');
+  foreach ($ads as $ad) {
+    $node = node_load($ad->nid);
+    _simpleads_activate_deactive_ad($node);
   }
 }

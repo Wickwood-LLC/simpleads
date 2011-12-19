@@ -39,8 +39,10 @@ and all time.
 - Integration with WYSIWYG module (supports TinyMCE, CKEditor, FCKEditor).
 Plugin allows to inject Ads into content.
 
-- SimpleAds stored in the system as content type 
-meaning that you can use it in Views.
+- SimpleAds intergated with Views. Enable sample View in Structure > Views.
+
+- SimpleAds integarted with Domain Access module. Allows to show ads only
+for selected domains.
 
 - Text Ads allows to advertise any text. If you would like to advertise
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
