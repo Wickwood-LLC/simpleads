@@ -14,7 +14,7 @@ function _simpleads_stat_tab($nid) {
   $form_after_stats = drupal_render(drupal_get_form('_simpleads_after_stats_form'));
 
   if (is_numeric($nid)) {
-    $node = _simpleads_node_load($nid);
+    $node = node_load($nid);
     if ($node) {
       $stats = _simpleads_get_statistics('simpleads_clicks', $nid);
       $stat_results = array();
@@ -52,7 +52,7 @@ function _simpleads_stat_tab($nid) {
 
       $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
       $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
-      $result .= _simpleads_stats_info($node);
+      $result .= _simpleads_stats_info($node, 'detail');
 
       $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
       $result .= theme('table', array('header' => $header, 'rows' => $impressions, 'caption' => t('Ad Impressions / Unique Impressions')));
@@ -219,7 +219,9 @@ function _simpleads_listing() {
     $query->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
     $query->fields('n', array('nid'));
     $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $filter['adgroup']);
+    if (isset($filter['adgroup'])) {
+      $query->condition('ti.tid', $filter['adgroup']);
+    }
 
     if ($filter['adstatus'] != '') {
       $query->condition('n.status', $filter['adstatus']);
@@ -231,7 +233,7 @@ function _simpleads_listing() {
   $rows = array();
   foreach ($results as $record) {
 
-    $node = _simpleads_node_load($record->nid);
+    $node = node_load($record->nid);
     if ($node) {
       $term_name = "";
       if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
@@ -244,7 +246,7 @@ function _simpleads_listing() {
       }
 
       $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
-      $ad_title .= _simpleads_stats_info($node);
+      $ad_title .= _simpleads_stats_info($node, 'list');
 
       $rows[] = array(
         array(

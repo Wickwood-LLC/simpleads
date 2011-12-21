@@ -503,7 +503,7 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
     $link_attributes['attributes']['target'] = '_blank';
   }
   $text_ad = "";
-  if (!empty($vars['ad']['url'])) {
+  if (!empty($vars['ad']['destination_url'])) {
     $text_ad = l($vars['ad']['text'], $vars['ad']['url'], $link_attributes);
   }
   else {
@@ -536,26 +536,55 @@ function simpleads_simpleads_order_info() {
 /**
  * Implements hook_simpleads_order().
  */
-function simpleads_simpleads_order($delta = '', $term_ids, $limit) {
-  $query = db_select('node', 'n');
-  $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-  $query->fields('n', array('nid'));
-  $query->condition('n.type', 'simpleads');
-  $query->condition('ti.tid', $term_ids, 'IN');
+function simpleads_simpleads_order($delta, $term_ids, $limit) {
   if ($delta == 'random') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
     $query->orderRandom();
+    $query->range(0, $limit);
+    return $query->execute();
   }
   if ($delta == 'order_created_desc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
     $query->orderBy('n.created', 'DESC');
+    $query->range(0, $limit);
+    return $query->execute();
   }
   if ($delta == 'order_modified_desc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
     $query->orderBy('n.changed', 'DESC');
+    $query->range(0, $limit);
+    return $query->execute();
   }
   if ($delta == 'order_title_asc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
     $query->orderBy('n.title', 'ASC');
+    $query->range(0, $limit);
+    return $query->execute();
   }
-  $query->range(0, $limit);
-  return $query->execute();
+  return FALSE;
 }
 
 /**

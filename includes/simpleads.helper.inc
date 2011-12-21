@@ -23,9 +23,16 @@ function _simpleads_load_ads($tid, $limit) {
   if (is_numeric($limit)) {
 
     $ad_settings = _simpleads_adgroup_settings($tid);
-    if (isset($ad_settings['ads_order'])) {
-      $query = module_invoke_all('simpleads_order', $ad_settings['ads_order'], $term_ids, $limit);
-      $results = $query[0];
+    $queries = module_invoke_all('simpleads_order', $ad_settings['ads_order'], $term_ids, $limit);
+    if (count($queries) > 0) {
+      foreach ($queries as $i => $query) {
+        if ($queries[$i] != '') {
+          foreach ($queries[$i] as $row) {
+            $node = node_load($row->nid);
+            $result[] = _simpleads_ads_data($node);
+          }
+        }
+      }
     }
     else {
       $query = db_select('node', 'n');
@@ -36,11 +43,11 @@ function _simpleads_load_ads($tid, $limit) {
       $query->orderRandom();
       $query->range(0, $limit);
       $results = $query->execute();
-    }
 
-    foreach ($results as $row) {
-      $node = _simpleads_node_load($row->nid);
-      $result[] = _simpleads_ads_data($node);
+      foreach ($results as $row) {
+        $node = node_load($row->nid);
+        $result[] = _simpleads_ads_data($node);
+      }
     }
   }
   return $result;
@@ -76,7 +83,7 @@ function _simpleads_ads_data($node) {
     $text_ad = "";
     $text_format = "plain_text";
     if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['value'])) {
-      if (isset($node->field_ad_text[$node->language]) && !empty($node->field_ad_text[$node->language][0]['format'])) {
+      if (isset($node->field_ad_text[$node->language]) && $node->field_ad_text[$node->language][0]['format'] != $text_format) {
         $text_format = $node->field_ad_text[$node->language][0]['format'];
         $text_ad = check_markup($node->field_ad_text[$node->language][0]['value'], $text_format);
       }
@@ -318,55 +325,29 @@ function _simpleads_rotation_effects() {
 
 /**
  * Helper function.
- * Node load.
- *
- * @global object $user
- * @param int $nid
- * @return object
- */
-function _simpleads_node_load($nid) {
-  global $user;
-  $node = node_load($nid);
-  $hook_integrate = module_invoke_all('simpleads_integrate');
-  foreach ($hook_integrate as $delta => $data) {
-    $hook_node = module_invoke_all('simpleads_access_node', $delta, $node);
-    foreach ($hook_node as $i => $node_object) {
-      return $node_object;
-    }
-  }
-  return $node;
-}
-
-/**
- * Helper function.
  * Adds additional information to statistics page.
  *
  * @param object $node
+ * @param string $op
  * @return string
  */
-function _simpleads_stats_info($node) {
+function _simpleads_stats_info($node, $op = 'list') {
+  $output = array();
+  if (module_exists('domain')) {
+    $_domain = domain_get_domain();
+    $gid = ($_domain['domain_id'] == 0) ? 1 : $_domain['domain_id'];
+    $domain_name = isset($node->domain_site) ? join(", ", $node->subdomains) : '';
+    if ($node->domain_site) {
+      $output['list'] = '<span><b>' . t('Domain(s)') . ':</b> ' . check_plain($domain_name) . '</span>';
+    }
+  }
   $result = "";
-  $hook_integrate = module_invoke_all('simpleads_integrate');
-  foreach ($hook_integrate as $delta => $data) {
-    $hook_stats_alter = module_invoke_all('simpleads_stats_alter', $delta, $node);
-    foreach ($hook_stats_alter as $i => $data) {
-      $result .= '<div class="simpleads-stat-' . $delta . '">' . $data . '</div>';
+  if (count($output) > 0) {
+    foreach ($output as $key => $data) {
+      $result .= '<div class="simpleads-stat-' . $data . '">' . $data . '</div>';
     }
   }
   return $result;
-}
-
-/**
- * Similar to in_array, but can check arrays
- *
- * @param array $needle
- * @param array $haystack
- * @return boolean
- */
-function _simpleads_array_in_array($needle, $haystack) {
-  if (!is_array($needle)) $needle = array($needle);
-  foreach ($needle as $key) if (in_array($key, $haystack)) return TRUE;
-  return FALSE;
 }
 
 /**

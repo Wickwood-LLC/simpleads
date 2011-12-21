@@ -6,58 +6,6 @@
  */
 
 /**
- * Implements hook_simpleads_integrate().
- */
-function simpleads_simpleads_integrate() {
-  return array(
-    'domain' => array(
-      'description' => t('Integration with Domain Access module'),
-    ),
-  );
-}
-
-/**
- * Implements hook_simpleads_access_node().
- */
-function simpleads_simpleads_access_node($delta = '', $node) {
-  global $user;
-  if ($delta == 'domain') {
-    if (module_exists('domain')) {
-      if (user_access('publish from assigned domain')) {
-        $user_domains = domain_get_user_domains($user);
-        if (isset($node->domains) && _simpleads_array_in_array(array_values($user_domains), array_values($node->domains))) {
-          return $node;
-        }
-        else {
-          return FALSE;
-        }
-      }
-      else {
-        return $node;
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_simpleads_stats_alter().
- */
-function simpleads_simpleads_stats_alter($delta = '', $node) {
-  $output = array();
-  if ($delta == 'domain') {
-    if (module_exists('domain')) {
-      $_domain = domain_get_domain();
-      $gid = ($_domain['domain_id'] == 0) ? 1 : $_domain['domain_id'];
-      $domain_name = isset($node->domain_site) ? join(", ", $node->subdomains) : '';
-      if ($node->domain_site == $gid) {
-        $output[] = '<span><b>' . t('Domain(s)') . ':</b> ' . check_plain($domain_name) . '</span>';
-      }
-    }
-  }
-  return $output;
-}
-
-/**
  * Implements hook_token_info().
  */
 function simpleads_token_info() {

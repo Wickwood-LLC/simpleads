@@ -16,11 +16,11 @@ class views_simpleads_plugin extends views_plugin_style {
    * Set default options
    */
     function option_definition() {
-    $options = parent::option_definition();
-    $options['ads_rotation_type'] = array('default' => 0);
-    $options['ads_rotation_delay'] = array('default' => 5);
-    $options['ads_width'] = array('default' => '');
-    $options['ads_height'] = array('default' => '');
+      $options = parent::option_definition();
+      $options['ads_rotation_type'] = array('default' => 0);
+      $options['ads_rotation_delay'] = array('default' => 5);
+      $options['ads_width'] = array('default' => '');
+      $options['ads_height'] = array('default' => '');
     return $options;
   }
 
