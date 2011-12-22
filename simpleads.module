@@ -329,7 +329,7 @@ function _simpleads_access_callback() {
 
 /**
  * Menu callback.
- * Callback for AJAX call. Returns list of ads.
+ * Callback for AJAX call.
  *
  * @param int $tid
  *   Term ID (Ad group ID)
@@ -338,7 +338,7 @@ function _simpleads_access_callback() {
  *   Number of Ads to retreive.
  *
  * @return string
- *   HTML tags (<a href><img></a>).
+ *   rendered HTML template.
  */
 function _simpleads_show_ads($tid, $limit) {
   if (is_numeric($tid)) {
@@ -482,7 +482,7 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
 
   // Link attributes
   $link_attributes['html'] = TRUE;
-  if ($vars['ad']['target']) {
+  if ($vars['ad']['target'] && !user_access('administer nodes')) {
     $link_attributes['attributes']['target'] = '_blank';
   }
 
@@ -499,7 +499,7 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
   _simpleads_increase_impression($vars['ad']['nid']);
   // Link attributes
   $link_attributes['html'] = TRUE;
-  if ($vars['ad']['target']) {
+  if ($vars['ad']['target'] && !user_access('administer nodes')) {
     $link_attributes['attributes']['target'] = '_blank';
   }
   $text_ad = "";
