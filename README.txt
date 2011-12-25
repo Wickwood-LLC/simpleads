@@ -32,7 +32,7 @@ and all time.
 
 - Generates live ad statistics report
 
-- Ad blocks can be themed
+- Ad blocks can be themed. Simply copy templates to your theme folder.
 
 - Dynamic Ad rotation (configurable on block configuration screen)
 
