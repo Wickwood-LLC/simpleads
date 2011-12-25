@@ -6,51 +6,6 @@
  */
 
 /**
- * Implements hook_token_info().
- */
-function simpleads_token_info() {
-  $type = array(
-    'name' => t('SimpleAds'),
-    'description' => t('Tokens related to individual nodes.'),
-    'needs-data' => 'node',
-  );
-  $node['ad-redirect-url'] = array(
-    'name' => t("SimpleAds redirect URL"),
-    'description' => t("The redirect URL to the ad's destination URL."),
-  );
-  return array(
-    'types' => array('node' => $type),
-    'tokens' => array('node' => $node),
-  );
-}
-
-/**
- * Implements hook_tokens().
- */
-function simpleads_tokens($type, $tokens, array $data = array(), array $options = array()) {
-  $url_options = array('absolute' => TRUE);
-  if (isset($options['language'])) {
-    $url_options['language'] = $options['language'];
-  }
-
-  $replacements = array();
-
-  if ($type == 'node' && !empty($data['node'])) {
-    $node = $data['node'];
-
-    foreach ($tokens as $name => $original) {
-      switch ($name) {
-        case 'ad-redirect-url':
-          $replacements[$original] = url('simpleads/redirect/' . $node->nid, $url_options);
-          break;
-      }
-    }
-  }
-
-  return $replacements;
-}
-
-/**
  * Implements hook_views_api().
  */
 function simpleads_views_api() {
