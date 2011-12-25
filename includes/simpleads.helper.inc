@@ -29,7 +29,9 @@ function _simpleads_load_ads($tid, $limit) {
         if ($queries[$i] != '') {
           foreach ($queries[$i] as $row) {
             $node = node_load($row->nid);
-            $result[] = _simpleads_ads_data($node);
+            if ($node->simpleads_show == 1) {
+              $result[] = _simpleads_ads_data($node);
+            }
           }
         }
       }
@@ -46,7 +48,9 @@ function _simpleads_load_ads($tid, $limit) {
 
       foreach ($results as $row) {
         $node = node_load($row->nid);
-        $result[] = _simpleads_ads_data($node);
+        if ($node->simpleads_show == 1) {
+          $result[] = _simpleads_ads_data($node);
+        }
       }
     }
   }
@@ -159,6 +163,15 @@ function _simpleads_render_ajax_template($nodes, $tid, $limit, $settings1 = arra
  */
 function simpleadsid_to_arg($arg) {
   if ($arg == '%') return 'none'; else return $arg;
+}
+
+/**
+ * Access callback.
+ * Node Ad stats tab.
+ */
+function _simpleads_node_stat_tab() {
+  $node = node_load(arg(1));
+  if ($node->type == 'simpleads' && user_access('access ad statistics')) return TRUE; else return FALSE;
 }
 
 /**
@@ -332,22 +345,52 @@ function _simpleads_rotation_effects() {
  * @return string
  */
 function _simpleads_stats_info($node, $op = 'list') {
-  $output = array();
-  if (module_exists('domain')) {
-    $_domain = domain_get_domain();
-    $gid = ($_domain['domain_id'] == 0) ? 1 : $_domain['domain_id'];
-    $domain_name = isset($node->domain_site) ? join(", ", $node->subdomains) : '';
-    if ($node->domain_site) {
-      $output['list'] = '<span><b>' . t('Domain(s)') . ':</b> ' . check_plain($domain_name) . '</span>';
+  $result = array();
+  $c = 0;
+  if ($hook = module_invoke_all('simpleads_stats_info', $node, $op)) {
+    if (is_array($hook) && !empty($hook)) {
+      foreach ($hook as $data) {
+          $result[] = '<div class="stat-item">' . $data . '</div>';
+      }
+      return '<div class="simpleads-stat-' . $op . '">' . join("<br />", $result) . '</div>';
     }
   }
-  $result = "";
-  if (count($output) > 0) {
-    foreach ($output as $key => $data) {
-      $result .= '<div class="simpleads-stat-' . $data . '">' . $data . '</div>';
+}
+
+/**
+ * Helper function.
+ * Build query to get the list of ads for the Ads Listing page.
+ *
+ * @param array $filter
+ * @return query
+ */
+function _simpleads_ads_listing_query($filter = array()) {
+  if ($filter['adgroup'] == '') {
+    $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+
+    if ($filter['adstatus'] != '') {
+      $query->condition('n.status', $filter['adstatus']);
     }
+    $results = $query->execute();
   }
-  return $result;
+  else {
+    $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
+    $query->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    if (isset($filter['adgroup'])) {
+      $query->condition('ti.tid', $filter['adgroup']);
+    }
+
+    if ($filter['adstatus'] != '') {
+      $query->condition('n.status', $filter['adstatus']);
+    }
+
+    $results = $query->execute();
+  }
+  return $results;
 }
 
 /**

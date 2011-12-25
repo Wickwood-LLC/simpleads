@@ -44,14 +44,8 @@ function _simpleads_stat_tab($nid) {
         $term_name = $term->name;
       }
 
-      $days_left_str = "";
-      $days_left = _simpleads_date_diff($node);
-      if ($days_left && $days_left > 0) {
-        $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
-      }
-
       $result .= '<h1>' . t("@adgroup: @adtitle - !link", array('@adgroup' => $term_name, '@adtitle' => $node->title, '!link' => $op_links)) . '</h1>';
-      $result .= '<span>' . _simpleads_statuses($node) . $days_left_str . '</span>';
+      $result .= '<span>' . _simpleads_stats_info($node, 'ad_status_detail') . '</span>';
       $result .= _simpleads_stats_info($node, 'detail');
 
       $result .= theme('table', array('header' => $header, 'rows' => $clicks, 'caption' => t('Ad Clicks / Unique Clicks')));
@@ -184,18 +178,10 @@ function _simpleads_listing() {
   $form_after_listing = drupal_render(drupal_get_form('_simpleads_after_listing_form'));
 
   $header = array(
-    array(
-      'data' => t('Ad Title'),
-    ),
-    array(
-      'data' => t('Ad Group'),
-    ),
-    array(
-      'data' => t('Status'),
-    ),
-    array(
-      'data' => t('Operations'),
-    ),
+    array('data' => t('Ad Title')),
+    array('data' => t('Ad Group')),
+    array('data' => t('Status')),
+    array('data' => t('Operations')),
   );
 
   $filter = array('adgroup' => '', 'adstatus' => '', 'adsperpage' => 35);
@@ -204,31 +190,7 @@ function _simpleads_listing() {
     $filter = unserialize($filters);
   }
 
-  if ($filter['adgroup'] == '') {
-    $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-
-    if ($filter['adstatus'] != '') {
-      $query->condition('n.status', $filter['adstatus']);
-    }
-    $results = $query->execute();
-  }
-  else {
-    $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
-    $query->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    if (isset($filter['adgroup'])) {
-      $query->condition('ti.tid', $filter['adgroup']);
-    }
-
-    if ($filter['adstatus'] != '') {
-      $query->condition('n.status', $filter['adstatus']);
-    }
-
-    $results = $query->execute();
-  }
+  $results = _simpleads_ads_listing_query($filter);
 
   $rows = array();
   foreach ($results as $record) {
@@ -248,18 +210,14 @@ function _simpleads_listing() {
       $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
       $ad_title .= _simpleads_stats_info($node, 'list');
 
+      $ad_group = !empty($term_name) ? $term_name : '';
+      $ad_group .= _simpleads_stats_info($node, 'ad_group');
+
       $rows[] = array(
-        array(
-          'data' => $ad_title,
-        ),
-        array(
-          'data' => !empty($term_name) ? $term_name : '',
-        ),
-        array(
-          'data' => _simpleads_statuses($node),
-        ),
-        array(
-          'data' => l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
+        array('data' => $ad_title),
+        array('data' => $ad_group),
+        array('data' => _simpleads_stats_info($node, 'ad_status')),
+        array('data' => l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
                     l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads'))) . ' &nbsp;&nbsp; ' .
                     l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads'))),
         ),
@@ -415,4 +373,21 @@ function _simpleads_get_statistics($table, $nid) {
   $stats['All Time'] = db_select($table)->condition('nid', $nid)->countQuery()->execute()->fetchField() . '/' . db_select($table)->condition('nid', $nid)->groupBy('ip_address')->countQuery()->execute()->fetchField();
 
   return $stats;
+}
+
+/**
+ * Implements hook_simpleads_stats_info().
+ */
+function simpleads_simpleads_stats_info($node, $op) {
+  if ($op == 'ad_status') {
+    return array(_simpleads_statuses($node));
+  }
+  if ($op == 'ad_status_detail') {
+    $days_left_str = "";
+    $days_left = _simpleads_date_diff($node);
+    if ($days_left && $days_left > 0) {
+      $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
+    }
+    return array(_simpleads_statuses($node) . $days_left_str);
+  }
 }

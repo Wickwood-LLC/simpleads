@@ -33,6 +33,16 @@ function simpleads_menu() {
     'file' => 'simpleads.stat.inc',
   );
 
+  $items['node/%simpleadsid/stat'] = array(
+    'title' => 'Ad Statistics',
+    'page callback' => '_simpleads_stat_tab',
+    'page arguments' => array(1),
+    'access callback' => '_simpleads_node_stat_tab',
+    'weight' => 15,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'simpleads.stat.inc',
+  );
+
   $items['admin/content/simpleads'] = array(
     'title' => 'Ads List',
     'page callback' => '_simpleads_listing',
@@ -79,6 +89,17 @@ function simpleads_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_admin_paths().
+ */
+function simpleads_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'node/*/stat' => TRUE,
+    );
+    return $paths;
+  }
+}
 
 /**
  * Implements hook_permission().
@@ -138,10 +159,8 @@ function simpleads_node_presave($node) {
  * Implements hook_node_delete().
  */
 function simpleads_node_delete($node) {
-  if ($node->type == 'simpleads') {
-    _simpleads_delete_click($node->nid);
-    _simpleads_delete_impression($node->nid);
-  }
+  _simpleads_delete_click($node->nid);
+  _simpleads_delete_impression($node->nid);
 }
 
 /**
@@ -503,7 +522,7 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
     $link_attributes['attributes']['target'] = '_blank';
   }
   $text_ad = "";
-  if (!empty($vars['ad']['destination_url'])) {
+  if (!empty($vars['ad']['destination_url']) && $vars['ad']['text_format'] == 'plain_text') {
     $text_ad = l($vars['ad']['text'], $vars['ad']['url'], $link_attributes);
   }
   else {
@@ -519,72 +538,6 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
 function simpleads_preprocess_simpleads_flash_element(&$vars) {
   $vars = _simpleads_theme_attributes_init($vars);
   _simpleads_increase_impression($vars['ad']['nid']);
-}
-
-/**
- * Implements hook_simpleads_order_info().
- */
-function simpleads_simpleads_order_info() {
-  return array(
-    'random' => t('Random'),
-    'order_created_desc' => t('Order by created date DESC'),
-    'order_modified_desc' => t('Order by modifed date DESC'),
-    'order_title_asc' => t('Order by node title ASC'),
-  );
-}
-
-/**
- * Implements hook_simpleads_order().
- */
-function simpleads_simpleads_order($delta, $term_ids, $limit) {
-  if ($delta == 'random') {
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $term_ids, 'IN');
-    $query->condition('n.status', 1);
-    $query->orderRandom();
-    $query->range(0, $limit);
-    return $query->execute();
-  }
-  if ($delta == 'order_created_desc') {
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $term_ids, 'IN');
-    $query->condition('n.status', 1);
-    $query->orderRandom();
-    $query->orderBy('n.created', 'DESC');
-    $query->range(0, $limit);
-    return $query->execute();
-  }
-  if ($delta == 'order_modified_desc') {
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $term_ids, 'IN');
-    $query->condition('n.status', 1);
-    $query->orderRandom();
-    $query->orderBy('n.changed', 'DESC');
-    $query->range(0, $limit);
-    return $query->execute();
-  }
-  if ($delta == 'order_title_asc') {
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('ti.tid', $term_ids, 'IN');
-    $query->condition('n.status', 1);
-    $query->orderRandom();
-    $query->orderBy('n.title', 'ASC');
-    $query->range(0, $limit);
-    return $query->execute();
-  }
-  return FALSE;
 }
 
 /**

@@ -196,3 +196,117 @@ function simpleads_views_default_views() {
   $views[$view->name] = $view;
   return $views;
 }
+
+/**
+ * Implements hook_simpleads_order_info().
+ */
+function simpleads_simpleads_order_info() {
+  $delta = array();
+
+  $delta['random'] = t('Random');
+  $delta['order_created_desc'] = t('Order by created date DESC');
+  $delta['order_modified_desc'] = t('Order by modifed date DESC');
+  $delta['order_title_asc'] = t('Order by node title ASC');
+
+  // Nodequeue module integration
+  if (module_exists('nodequeue')) {
+    $qids = nodequeue_get_qids('simpleads');
+    foreach ($qids as $row) {
+      $nq = db_select('nodequeue_queue', 'nq')->fields('nq', array('name', 'title'))->condition('nq.qid', $row->qid)->execute()->fetchObject();
+      $delta[$nq->name] = t('Nodequeue: @name', array('@name' => $nq->title));
+    }
+  }
+  return $delta;
+}
+
+/**
+ * Implements hook_simpleads_order().
+ */
+function simpleads_simpleads_order($delta, $term_ids, $limit) {
+  if ($delta == 'random') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
+    $query->range(0, $limit);
+    return $query->execute();
+  }
+  if ($delta == 'order_created_desc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
+    $query->orderBy('n.created', 'DESC');
+    $query->range(0, $limit);
+    return $query->execute();
+  }
+  if ($delta == 'order_modified_desc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
+    $query->orderBy('n.changed', 'DESC');
+    $query->range(0, $limit);
+    return $query->execute();
+  }
+  if ($delta == 'order_title_asc') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
+    $query->orderBy('n.title', 'ASC');
+    $query->range(0, $limit);
+    return $query->execute();
+  }
+  // Nodequeue module integration
+  if (module_exists('nodequeue')) {
+    $qids = nodequeue_get_qids('simpleads');
+    foreach ($qids as $row) {
+      if ($delta == 'queue_' . $row->qid) {
+        $query = db_select('nodequeue_nodes', 'nn');
+        $query->fields('nn', array('nid'));
+        $query->condition('nn.qid', $row->qid);
+        $query->orderBy('nn.position', 'DESC');
+        return $query->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function simpleads_node_load($nodes, $types) {
+  foreach ($nodes as $i => $node) {
+    // Integartion with Domain Access module.
+    if (module_exists('domain')) {
+      if ($node->type == 'simpleads') {
+        $_domain = domain_get_domain();
+        $did = ($_domain['domain_id'] == '') ? 0 : $_domain['domain_id'];
+        $show = 0;
+        foreach ($node->domains as $gid) {
+          ($gid == -1) ? $key = 0 : $key = $gid;
+          $domain = domain_lookup($key);
+          if ($domain['domain_id'] == $did && in_array(-1, $node->domains)) $show = 1;
+          elseif ($domain['domain_id'] == $did) $show = 1;
+        }
+        $node->simpleads_show = $show;
+      }
+    }
+    else {
+      $node->simpleads_show = 1;
+    }
+  }
+}

@@ -1,5 +1,6 @@
 name = "SimpleAds"
 description = "Advertisements"
+package = "SimpleAds"
 core = "7.x"
 
 scripts[] = simpleads.js
