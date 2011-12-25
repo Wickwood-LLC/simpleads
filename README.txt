@@ -39,12 +39,14 @@ and all time.
 - Integration with WYSIWYG module (supports TinyMCE, CKEditor, FCKEditor).
 Plugin allows to inject Ads into content.
 
-- SimpleAds intergated with Views. Enable sample View in Structure > Views.
+- Integration with Views. Enable sample View in Structure > Views.
 
-- Supports Domain Access module.
+- Integration with Domain Access module.
+
+- Integration with Nodequeue module.
 
 - Text Ads allows to advertise any text. If you would like to advertise
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
 Video Filter module and enable WYSIWYG plugin.
 
-- Flash Ads, upload SWF file and it will automatically show up in your block.
+- Support Flash Ads. Upload SWF file and it will automatically show up in your block.
