@@ -189,7 +189,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->range(0, $limit);
     return $query->execute();
   }
-  if ($delta == 'order_created_desc') {
+  if ($delta == 'order_created_desc' || $delta == 1) {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
@@ -201,7 +201,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->range(0, $limit);
     return $query->execute();
   }
-  if ($delta == 'order_modified_desc') {
+  if ($delta == 'order_modified_desc' || $delta == 2) {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
@@ -213,7 +213,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->range(0, $limit);
     return $query->execute();
   }
-  if ($delta == 'order_title_asc') {
+  if ($delta == 'order_title_asc' || $delta == 3) {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
