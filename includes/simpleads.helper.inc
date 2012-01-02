@@ -23,7 +23,8 @@ function _simpleads_load_ads($tid, $limit) {
   if (is_numeric($limit)) {
 
     $ad_settings = _simpleads_adgroup_settings($tid);
-    $queries = module_invoke_all('simpleads_order', $ad_settings['ads_order'], $term_ids, $limit);
+    $order_delta = isset($ad_settings['ads_order']) ? $ad_settings['ads_order'] : 0;
+    $queries = module_invoke_all('simpleads_order', $order_delta, $term_ids, $limit);
     if (count($queries) > 0) {
       foreach ($queries as $i => $query) {
         if ($queries[$i] != '') {
