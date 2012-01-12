@@ -386,6 +386,7 @@ function _simpleads_redirect($nid) {
         if (user_access('count ad clicks')) {
           _simpleads_save_click($node->nid);
         }
+        $url = _simpleads_validate_url($url);
         header("Location: " . $url);
       }
     }

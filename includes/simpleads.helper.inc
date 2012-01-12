@@ -396,6 +396,17 @@ function _simpleads_ads_listing_query($filter = array()) {
 
 /**
  * Helper function.
+ * Validates redirection URL.
+ */
+function _simpleads_validate_url($url) {
+  if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
+    $url = "http://" . $url;
+  }
+  return $url;
+}
+
+/**
+ * Helper function.
  */
 function _simpleads_theme_attributes_init($vars) {
   $vars['attributes_array'] = array();
