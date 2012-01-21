@@ -43,6 +43,7 @@ function simpleads_views_plugins() {
  * views-simpleads.tpl.php
  */
 function template_preprocess_views_simpleads(&$vars) {
+  $tid = 0;
   $ads = array();
   $ad_settings = array();
   $block_settings = array();
