@@ -383,7 +383,7 @@ function _simpleads_redirect($nid) {
         drupal_goto('node/' . $node->nid);
       }
       else {
-        if (user_access('count ad clicks')) {
+        if (user_access('count ad clicks') && !_simpleads_bot_detect()) {
           _simpleads_save_click($node->nid);
         }
         $url = _simpleads_validate_url($url);

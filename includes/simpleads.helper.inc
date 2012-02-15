@@ -237,9 +237,23 @@ function _simpleads_delete_impression($nid) {
 function _simpleads_increase_impression($nid) {
   global $user;
   if (user_access('count ad impressions')) {
-    if ($user->uid != 1) {
+    if ($user->uid != 1 && !_simpleads_bot_detect()) {
       _simpleads_save_impression($nid);
     }
+  }
+}
+
+/**
+ * Helper function.
+ * Return TRUE if the visitor is a bot.
+ * @return boolean
+ */
+function _simpleads_bot_detect() {
+  if (preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
   }
 }
 
