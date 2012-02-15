@@ -246,8 +246,9 @@ function simpleads_block_view($delta = '') {
 function simpleads_block_configure($delta = '') {
   $form = array();
 
+  $max_ads = variable_get('simpleads_max_ads_per_block', 25);
   $options = array();
-  for ($i = 1; $i < 11; $i++) {
+  for ($i = 1; $i <= $max_ads; $i++) {
     $options[$i] = $i;
   }
 
