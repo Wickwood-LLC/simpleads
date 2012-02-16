@@ -3,4 +3,6 @@ description = "Advertisement campaigns"
 package = "SimpleAds"
 core = "7.x"
 
+scripts[] = simpleads_campaigns.js
+
 dependencies[] = simpleads
