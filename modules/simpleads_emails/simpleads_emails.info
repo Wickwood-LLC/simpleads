@@ -1,0 +1,6 @@
+name = "Email Reports"
+description = "Sends email reports."
+package = "SimpleAds"
+core = "7.x"
+
+dependencies[] = simpleads
