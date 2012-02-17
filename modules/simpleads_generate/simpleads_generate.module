@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @file
+ * SimpleAds Generate module. 
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function simpleads_generate_menu() {
+  $items = array();
+
+  $items['admin/config/development/generate/simpleads'] = array(
+    'title' => 'Generate SimpleAd Clicks/Impressions',
+    'description' => t('Generate a given number of clicks and impressions for SimpleAds'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simpleads_generate_form'),
+    'access arguments' => array('administer nodes'),
+  );
+
+  return $items;
+}
+
+/**
+ * Generates clicks and impressions.
+ */
+function simpleads_generate_form() {
+  $form['clicks_needed'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many clicks would you like to generate?'),
+    '#default_value' => 2000,
+    '#size' => 10,
+  );
+
+  $form['impressions_needed'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many impressions would you like to generate?'),
+    '#default_value' => 3000,
+    '#size' => 10,
+  );
+
+
+  $form['should_truncate'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete all clicks and impressions before generating.'),
+    '#default_value' => FALSE,
+  );
+
+
+
+  $options = array(1 => t('Now'));
+  foreach (array(3600, 86400, 604800, 2592000, 31536000, 31536000 * 2,  31536000 * 3) as $interval) {
+    $options[$interval] = format_interval($interval, 1) . ' ' . t('ago');
+  }
+  $form['age'] = array(
+    '#type' => 'select',
+    '#title' => t('How old should the clicks and impressions be?'),
+    '#description' => t('Clicks will be distributed randomly from the current time, back to the selected time.'),
+    '#options' => $options,
+    '#default_value' => 604800,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Generate'),
+  );
+  return $form;
+}
+
+/**
+ * FormAPI submission to generate users.
+ */
+function simpleads_generate_form_submit($form_id, &$form_state) {
+  $values = $form_state['values'];
+  simpleads_generate_create_clicks($values);
+}
+
+function simpleads_generate_create_clicks($values) {
+  module_load_include('inc', 'simpleads','includes/simpleads.helper');
+  extract($values);
+  if ($should_truncate) {
+    db_delete('simpleads_impressions')->execute();
+    db_delete('simpleads_clicks')->execute();
+    drupal_set_message(t('Clicks and impressions have been deleted.'));
+  }
+  if( $clicks_needed + $impressions_needed < 1 ) {
+    return;
+  }
+
+  $ad_nodes = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('n.type', 'simpleads')
+    ->orderRandom()
+    ->execute()
+    ->fetchAllAssoc('nid');
+
+  $ad_nodes = array_keys($ad_nodes);
+  $ad_nodes_count = count($ad_nodes);
+
+  $num_clicks = 0;
+  $num_impressions = 0;
+  $ip = '127.0.0.1';
+
+  while ( $num_impressions < $impressions_needed || $num_clicks < $clicks_needed ) {
+    $nid = $ad_nodes[mt_rand(0, $ad_nodes_count-1)];
+    $time = REQUEST_TIME - mt_rand(0, $age);
+    $fields = array(
+      'nid' => $nid,
+      'timestamp' => $time,
+      'ip_address' => $ip,
+    );
+
+    if( $num_impressions < $impressions_needed ) {
+      $num_impressions++;
+      db_insert('simpleads_impressions')
+      ->fields($fields)
+      ->execute();
+    }
+
+    if( $num_clicks < $clicks_needed ) {
+      $num_clicks++;
+      _simpleads_save_click($nid);
+      db_insert('simpleads_impressions')
+      ->fields($fields)
+      ->execute();
+    }
+  }
+
+  drupal_set_message(t('!num_impressions and  !num_clicks created.', array(
+    '!num_clicks' => format_plural($num_clicks, '1 click', '@count clicks'),
+    '!num_impressions' => format_plural($num_impressions, '1 impression', '@count impressions')
+  )));
+}

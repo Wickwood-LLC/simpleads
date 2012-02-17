@@ -1,0 +1,8 @@
+name = "Devel SimpleAds generate"
+description = "Generate dummy impressions"
+package = "SimpleAds"
+core = 7.x
+
+dependencies[] = devel
+dependencies[] = simpleads
+tags[] = developer
