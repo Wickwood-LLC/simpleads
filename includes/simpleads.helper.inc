@@ -171,8 +171,13 @@ function simpleadsid_to_arg($arg) {
  * Node Ad stats tab.
  */
 function _simpleads_node_stat_tab() {
-  $node = node_load(arg(1));
-  if (is_object($node) && $node->type == 'simpleads' && user_access('access ad statistics')) return TRUE; else return FALSE;
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $node = node_load(arg(1));
+    if (is_object($node) && $node->type == 'simpleads' && user_access('access ad statistics')) return TRUE; else return FALSE;
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**
