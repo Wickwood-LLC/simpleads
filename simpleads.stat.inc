@@ -58,7 +58,7 @@ function _simpleads_stat_tab($nid) {
 }
 
 /**
- * Empty Form plaeholder. Allows other modules to alter the form and add custom data below Ads Statistics tables.
+ * Empty Form placeholder. Allows other modules to alter the form and add custom data below Ads Statistics tables.
  */
 function _simpleads_after_stats_form() {
   $form = array();
@@ -69,7 +69,7 @@ function _simpleads_after_stats_form() {
 }
 
 /**
- * Empty Form plaeholder. Allows other modules to alter the form and add custom data below Ads listing table.
+ * Empty Form placeholder. Allows other modules to alter the form and add custom data below Ads listing table.
  */
 function _simpleads_after_listing_form() {
   $form = array();
