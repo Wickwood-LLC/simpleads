@@ -9,7 +9,7 @@ It displays graphical, text and flash ads in configurable blocks.
 It records and reports useful statistics.
 It is easy to configure and does not depend on other contrib modules.
 
-Features:
+FEATURES:
 
 - Customizable groups for different ad types
 
@@ -49,4 +49,12 @@ Plugin allows to inject Ads into content.
 videos from YouTube, Vimeo, Blip.TV or other sites, simply install
 Video Filter module and enable WYSIWYG plugin.
 
-- Support Flash Ads. Upload SWF file and it will automatically show up in your block.
+- Support Flash Ads. 
+Upload SWF file and it will automatically show up in your block.
+
+CONFIGURATION:
+
+If your site is behind a reverse proxy (e.g. Varnish) the unique impressions
+count will be incorrect because it will record the IP address of the proxy
+rather than the client. Make sure you set variables 'reverse_proxy' and
+'reverse_proxy_addresses' to suit your infrastructure.
