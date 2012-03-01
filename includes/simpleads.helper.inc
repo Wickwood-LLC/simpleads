@@ -284,7 +284,7 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
   $start_time = (int)strtotime($start_time);
   $end_time = (int)strtotime($end_time);
 
-  $now = time();
+  $now = REQUEST_TIME;
 
   if ($start_time != '' && $end_time != '') {
     if ($now >= $start_time && $end_time > $now) {
