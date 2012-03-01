@@ -174,8 +174,10 @@ function _simpleads_group_filter_form_submit($form, &$form_state) {
  */
 function _simpleads_listing() {
 
-  $filter_form = drupal_render(drupal_get_form('_simpleads_group_filter_form'));
-  $form_after_listing = drupal_render(drupal_get_form('_simpleads_after_listing_form'));
+  $filter_render = drupal_get_form('_simpleads_group_filter_form');
+  $filter_form = drupal_render($filter_render);
+  $listing_render = drupal_get_form('_simpleads_after_listing_form');
+  $form_after_listing = drupal_render($listing_render);
 
   $header = array(
     array('data' => t('Ad Title')),
