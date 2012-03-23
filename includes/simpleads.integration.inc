@@ -197,7 +197,6 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.type', 'simpleads');
     $query->condition('ti.tid', $term_ids, 'IN');
     $query->condition('n.status', 1);
-    $query->orderRandom();
     $query->orderBy('n.created', 'DESC');
     $query->range(0, $limit);
     return $query->execute();
@@ -209,7 +208,6 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.type', 'simpleads');
     $query->condition('ti.tid', $term_ids, 'IN');
     $query->condition('n.status', 1);
-    $query->orderRandom();
     $query->orderBy('n.changed', 'DESC');
     $query->range(0, $limit);
     return $query->execute();
@@ -221,7 +219,6 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.type', 'simpleads');
     $query->condition('ti.tid', $term_ids, 'IN');
     $query->condition('n.status', 1);
-    $query->orderRandom();
     $query->orderBy('n.title', 'ASC');
     $query->range(0, $limit);
     return $query->execute();
