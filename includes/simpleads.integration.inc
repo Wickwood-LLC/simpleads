@@ -188,6 +188,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.status', 1);
     $query->orderRandom();
     $query->range(0, $limit);
+    $query->addTag('node_access');
     return $query->execute();
   }
   if ($delta == 'order_created_desc' || $delta == 1) {
@@ -199,6 +200,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.status', 1);
     $query->orderBy('n.created', 'DESC');
     $query->range(0, $limit);
+    $query->addTag('node_access');
     return $query->execute();
   }
   if ($delta == 'order_modified_desc' || $delta == 2) {
@@ -210,6 +212,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.status', 1);
     $query->orderBy('n.changed', 'DESC');
     $query->range(0, $limit);
+    $query->addTag('node_access');
     return $query->execute();
   }
   if ($delta == 'order_title_asc' || $delta == 3) {
@@ -221,6 +224,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->condition('n.status', 1);
     $query->orderBy('n.title', 'ASC');
     $query->range(0, $limit);
+    $query->addTag('node_access');
     return $query->execute();
   }
   // Nodequeue module integration
@@ -232,6 +236,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
         $query->fields('nn', array('nid'));
         $query->condition('nn.qid', $row->qid);
         $query->orderBy('nn.position', 'DESC');
+        $query->addTag('node_access');
         return $query->execute();
       }
     }
