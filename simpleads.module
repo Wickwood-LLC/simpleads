@@ -380,7 +380,7 @@ function _simpleads_redirect($nid) {
     $url = "";
     if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
       $url = $node->field_ad_url[$node->language][0]['value'];
-      if (user_access('administer nodes')) {
+      if (user_access('administer nodes') || user_access('create simpleads content')) {
         drupal_goto('node/' . $node->nid);
       }
       else {
