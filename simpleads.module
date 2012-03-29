@@ -109,6 +109,10 @@ function simpleads_permission() {
     'access ad statistics' => array(
       'title' => t('Access ad statistics'),
     ),
+    'access ad node' => array(
+      'title' => t('Access ad node'),
+      'description' => t('Please use this permission to allow editors access ad node'),
+    ),
     'count ad impressions' => array(
       'title' => t('Count ad impressions'),
     ),
@@ -342,7 +346,7 @@ function simpleads_block_save($delta = '', $edit = array()) {
  */
 function _simpleads_access_callback() {
   global $user;
-  if (user_access('create simpleads content') || (user_access('administer nodes') && user_access('bypass node access'))) {
+  if (user_access('access ad node') || (user_access('administer nodes') && user_access('bypass node access'))) {
     return TRUE;
   }
 }
@@ -380,7 +384,7 @@ function _simpleads_redirect($nid) {
     $url = "";
     if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
       $url = $node->field_ad_url[$node->language][0]['value'];
-      if (user_access('administer nodes') || user_access('create simpleads content')) {
+      if (user_access('administer nodes') || user_access('access ad node')) {
         drupal_goto('node/' . $node->nid);
       }
       else {

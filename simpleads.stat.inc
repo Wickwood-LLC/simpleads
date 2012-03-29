@@ -19,7 +19,7 @@ function _simpleads_stat_tab($nid) {
       $stats = _simpleads_get_statistics('simpleads_clicks', $nid);
       $stat_results = array();
       foreach ($stats as $key => $val) {
-        $header[]['data'] = t('@block_name', array('@block_name' => $key));
+        $header[]['data'] = $key;
         $stat_results[]['data'] = $val;
       }
 
@@ -374,6 +374,16 @@ function _simpleads_get_statistics($table, $nid) {
 
   $stats['All Time'] = db_select($table)->condition('nid', $nid)->countQuery()->execute()->fetchField() . '/' . db_select($table)->condition('nid', $nid)->groupBy('ip_address')->countQuery()->execute()->fetchField();
 
+  t('Last Hour');
+  t('Today');
+  t('Yesterday');
+  t('Last Week');
+  t('Last Month');
+  t('3 Months');
+  t('6 Months');
+  t('1 year');
+  t('All Time');
+
   return $stats;
 }
 
@@ -388,7 +398,7 @@ function simpleads_simpleads_stats_info($node, $op) {
     $days_left_str = "";
     $days_left = _simpleads_date_diff($node);
     if ($days_left && $days_left > 0) {
-      $days_left_str = ', ' . t("@days day(s) left. ", array('@days' => $days_left));
+      $days_left_str = ', ' . format_plural($days_left, '1 day left.', '@count days left.');
     }
     return array(_simpleads_statuses($node) . $days_left_str);
   }
