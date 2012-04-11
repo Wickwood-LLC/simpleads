@@ -52,3 +52,27 @@ function hook_simpleads_stats_info($node, $op) {
     return array('Item on the ads listing page');
   }
 }
+
+/**
+ * SimpleAd node status change (during cron).
+ *
+ * @param object $node
+ * @param bolean $status
+ */
+function hook_simpleads_status_change($node, $status = NULL) {}
+
+/**
+ * Ad Clicked.
+ *
+ * @param string $op
+ * @param int $nid
+ */
+function hook_simpleads_ad_click($op, $nid) {}
+
+/**
+ * Ad Impressed.
+ *
+ * @param string $op
+ * @param int $nid
+ */
+function hook_simpleads_ad_impression($op, $nid) {}

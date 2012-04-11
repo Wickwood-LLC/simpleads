@@ -6,6 +6,29 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function simpleads_campaigns_menu() {
+  $items = array();
+  $items['admin/content/simpleads/create_campaign'] = array(
+    'title' => 'Create new Ad Campaign',
+    'page callback' => '_simpleads_campaign_new',
+    'access callback' => '_simpleads_access_callback',
+    'weight' => 17,
+    'type' => MENU_LOCAL_ACTION,
+  );
+  return $items;
+}
+
+/**
+ * Menu callback.
+ * Redirect to SimpleAd Campiagn creation form.
+ */
+function _simpleads_campaign_new() {
+  drupal_goto('node/add/simpleads-campaign', array('query' => array('destination' => 'admin/content/simpleads')));
+}
+
+/**
  * Implements hook_form_alter().
  */
 function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
@@ -65,4 +88,11 @@ function simpleads_campaigns_node_access($node, $op, $account) {
   if (isset($node->type) && $node->type == 'simpleads_campaign' && $op == 'view' && !user_access('administer nodes', $account)) {
     return NODE_ACCESS_DENY;
   }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function simpleads_campaigns_cron() {
+  
 }

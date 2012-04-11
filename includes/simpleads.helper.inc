@@ -212,6 +212,7 @@ function _simpleads_save_click($nid) {
     'ip_address' => ip_address(),
   ))
   ->execute();
+  module_invoke_all('simpleads_ad_click', 'insert', $nid);
 }
 
 /**
@@ -222,6 +223,7 @@ function _simpleads_save_click($nid) {
  */
 function _simpleads_delete_click($nid) {
   db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
+  module_invoke_all('simpleads_ad_click', 'delete', $nid);
 }
 
 /**
@@ -238,6 +240,7 @@ function _simpleads_save_impression($nid) {
     'ip_address' => ip_address(),
   ))
   ->execute();
+  module_invoke_all('simpleads_ad_impression', 'insert', $nid);
 }
 
 /**
@@ -248,6 +251,7 @@ function _simpleads_save_impression($nid) {
  */
 function _simpleads_delete_impression($nid) {
   db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
+  module_invoke_all('simpleads_ad_impression', 'delete', $nid);
 }
 
 /**
@@ -342,6 +346,9 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
   }
   if ($who != 'cron') {
     return $node;
+  }
+  else {
+    module_invoke_all('simpleads_status_change', $node, $node->status);
   }
 }
 
