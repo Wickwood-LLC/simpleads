@@ -391,14 +391,8 @@ function _simpleads_redirect($nid) {
         if (user_access('count ad clicks') && !_simpleads_bot_detect()) {
           _simpleads_save_click($node->nid);
         }
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        if (empty($scheme)) {
-          drupal_goto($url);
-        }
-        else {
-          $url = _simpleads_validate_url($url);
-          header("Location: " . $url);
-        }
+        $url = _simpleads_validate_url($url);
+        header("Location: " . $url);
       }
     }
     else {

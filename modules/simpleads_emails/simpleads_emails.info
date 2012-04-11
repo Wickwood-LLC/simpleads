@@ -1,8 +1,0 @@
-name = "Email Reports"
-description = "Sends email reports."
-package = "SimpleAds"
-core = "7.x"
-
-scripts[] = simpleads_emails.js
-
-dependencies[] = simpleads

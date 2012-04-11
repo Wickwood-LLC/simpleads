@@ -30,7 +30,16 @@ function _simpleads_load_ads($tid, $limit) {
         if ($queries[$i] != '') {
           foreach ($queries[$i] as $row) {
             $node = node_load($row->nid);
-            if ($node->simpleads_show == 1) {
+            $active = FALSE;
+            if (isset($node->field_ad_status[$node->language])) {
+              if ($node->field_ad_status[$node->language][0]['value'] == 1) {
+                $active = TRUE;
+              }
+              else {
+                $active = FALSE;
+              }
+            }
+            if ($node->simpleads_show == 1 && $active) {
               $result[] = _simpleads_ads_data($node);
             }
           }
@@ -49,7 +58,16 @@ function _simpleads_load_ads($tid, $limit) {
 
       foreach ($results as $row) {
         $node = node_load($row->nid);
-        if ($node->simpleads_show == 1) {
+        $active = FALSE;
+        if (isset($node->field_ad_status[$node->language])) {
+          if ($node->field_ad_status[$node->language][0]['value'] == 1) {
+             $active = TRUE;
+           }
+          else {
+            $active = FALSE;
+          }
+        }
+        if ($node->simpleads_show == 1 && $active) {
           $result[] = _simpleads_ads_data($node);
         }
       }
@@ -419,7 +437,16 @@ function _simpleads_ads_listing_query($filter = array()) {
  */
 function _simpleads_validate_url($url) {
   if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
-    $url = "http://" . $url;
+    // Allow internal url if user has access to it.
+    if (drupal_valid_path($url)) {
+      $url = url($url, array('absolute' => TRUE));
+    }
+    else {
+      $url = 'http://' . $url;
+    }
+  }
+  else {
+    $url = url($url, array('absolute' => TRUE));
   }
   return $url;
 }

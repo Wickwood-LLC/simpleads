@@ -506,6 +506,7 @@ function simpleads_install() {
     'entity_type' => 'node',
     'bundle' => 'simpleads',
     'label' => $t('Status'),
+    'description' => $t('Please use this field to show or hide ads even if the ad is active and published.'),
     'required' => FALSE,
     'widget' => array(
       'type' => 'options_onoff',
@@ -547,13 +548,6 @@ function simpleads_install() {
  * Implements hook_uninstall().
  */
 function simpleads_uninstall() {
-  field_delete_instance(
-    array(
-      'field_name' => 'field_ad_image',
-      'entity_type' => 'node',
-      'bundle' => 'simpleads',
-    )
-  );
   field_delete_field('field_ad_image');
   field_delete_field('field_ad_flash');
   field_delete_field('field_ad_text');

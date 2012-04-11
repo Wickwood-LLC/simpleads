@@ -4,3 +4,65 @@
  * @file
  * SimpleAds Campaigns module.
  */
+
+/**
+ * Implements hook_form_alter().
+ */
+function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'simpleads_node_form') {
+    $lang = $form['language']['#value'];
+    $campaigns = array(
+      '_none' => t('- None -'),
+    );
+    $results = db_select('node', 'n')
+      ->fields('n', array('title', 'nid'))
+      ->condition('n.status', 1)
+      ->condition('n.type', 'simpleads_campaign')
+      ->condition('n.language', $lang)
+      ->orderBy('n.title')
+      ->execute();
+    foreach ($results as $row) {
+      $campaigns[$row->nid] = $row->title;
+    }
+    $node = FALSE;
+    if (isset($form['#node']) && is_object($form['#node'])) {
+      $node = $form['#node'];
+    }
+    if (isset($form['field_adcamp_list'])) {
+      $form['field_adcamp_list'][$lang]['#prefix'] = '<div style="display:none;">';
+      $form['field_adcamp_list'][$lang]['#suffix'] = '</div>';
+      $title = $form['field_adcamp_list'][$lang][0]['#title'];
+      $description = $form['field_adcamp_list'][$lang][0]['#description'];
+      $default = "";
+      if ($node && isset($node->field_adcamp_list[$node->language]) && !empty($node->field_adcamp_list[$node->language][0]['safe_value'])) {
+        $default = $node->field_adcamp_list[$node->language][0]['safe_value'];
+      }
+      $form['campaign'] = array(
+        '#type' => 'select',
+        '#title' => $title,
+        '#description' => $description,
+        '#weight' => 9,
+        '#options' => $campaigns,
+        '#default_value' => $default,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function simpleads_campaigns_node_presave($node) {
+  if ($node->type == 'simpleads') {
+    $node->field_adcamp_list[$node->language][0]['value'] = $node->campaign;
+  }
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function simpleads_campaigns_node_access($node, $op, $account) {
+  if (isset($node->type) && $node->type == 'simpleads_campaign' && $op == 'view' && !user_access('administer nodes', $account)) {
+    return NODE_ACCESS_DENY;
+  }
+}

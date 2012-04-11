@@ -566,6 +566,7 @@ function simpleads_update_7005(&$sandbox) {
     'entity_type' => 'node',
     'bundle' => 'simpleads',
     'label' => $t('Status'),
+    'description' => $t('Please use this field to show or hide ads even if the ad is active and published.'),
     'required' => FALSE,
     'widget' => array(
       'type' => 'options_onoff',
