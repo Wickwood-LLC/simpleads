@@ -62,6 +62,13 @@ function hook_simpleads_stats_info($node, $op) {
 function hook_simpleads_status_change($node, $status = NULL) {}
 
 /**
+ * Preload ad.
+ *
+ * @param int $nid
+ */
+function hook_simpleads_preload($nid) {}
+
+/**
  * Ad Clicked.
  *
  * @param string $op

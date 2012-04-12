@@ -29,6 +29,7 @@ function _simpleads_load_ads($tid, $limit) {
       foreach ($queries as $i => $query) {
         if ($queries[$i] != '') {
           foreach ($queries[$i] as $row) {
+            module_invoke_all('simpleads_preload', $row->nid);
             $node = node_load($row->nid);
             $active = FALSE;
             if (isset($node->field_ad_status[$node->language])) {
@@ -57,6 +58,7 @@ function _simpleads_load_ads($tid, $limit) {
       $results = $query->execute();
 
       foreach ($results as $row) {
+        module_invoke_all('simpleads_preload', $row->nid);
         $node = node_load($row->nid);
         $active = FALSE;
         if (isset($node->field_ad_status[$node->language])) {
@@ -157,14 +159,22 @@ function _simpleads_render_ajax_template($nodes, $tid, $limit, $settings1 = arra
     if (count($settings1) > 0) $ad_setting = array_merge($this_ad_setting, $settings1);
     else $ad_setting = $this_ad_setting;
 
+    $css_class = array();
+    if ($count == 0) $css_class = array('first');
+    else {
+      if ($count == (count($nodes) - 1)) {
+        $css_class = array('last');
+      }
+    }
+
     if ($ad['type'] == 'graphic') {
-      $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting));
+      $result .= theme('simpleads_img_element', array('ad' => $ad, 'settings' => $ad_setting, 'css_class' => $css_class));
     }
     elseif ($ad['type'] == 'text') {
-      $result .= theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting));
+      $result .= theme('simpleads_text_element', array('ad' => $ad, 'settings' => $ad_setting, 'css_class' => $css_class));
     }
     else {
-      $result .= theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting));
+      $result .= theme('simpleads_flash_element', array('ad' => $ad, 'settings' => $ad_setting, 'css_class' => $css_class));
     }
     $count++;
   }
@@ -205,14 +215,14 @@ function _simpleads_node_stat_tab() {
  * @param int $nid
  */
 function _simpleads_save_click($nid) {
+  module_invoke_all('simpleads_ad_click', 'insert', $nid);
   db_insert('simpleads_clicks')
   ->fields(array(
     'nid' => $nid,
-    'timestamp' => time(),
+    'timestamp' => REQUEST_TIME,
     'ip_address' => ip_address(),
   ))
   ->execute();
-  module_invoke_all('simpleads_ad_click', 'insert', $nid);
 }
 
 /**
@@ -222,8 +232,8 @@ function _simpleads_save_click($nid) {
  * @param int $nid
  */
 function _simpleads_delete_click($nid) {
-  db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
   module_invoke_all('simpleads_ad_click', 'delete', $nid);
+  db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
 }
 
 /**
@@ -233,14 +243,14 @@ function _simpleads_delete_click($nid) {
  * @param int $nid
  */
 function _simpleads_save_impression($nid) {
+  module_invoke_all('simpleads_ad_impression', 'insert', $nid);
   db_insert('simpleads_impressions')
   ->fields(array(
     'nid' => $nid,
-    'timestamp' => time(),
+    'timestamp' => REQUEST_TIME,
     'ip_address' => ip_address(),
   ))
   ->execute();
-  module_invoke_all('simpleads_ad_impression', 'insert', $nid);
 }
 
 /**
@@ -250,8 +260,8 @@ function _simpleads_save_impression($nid) {
  * @param int $nid
  */
 function _simpleads_delete_impression($nid) {
-  db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
   module_invoke_all('simpleads_ad_impression', 'delete', $nid);
+  db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
 }
 
 /**
@@ -466,5 +476,11 @@ function _simpleads_theme_attributes_init($vars) {
   $vars['title_attributes_array'] = array();
   $vars['content_attributes_array'] = array();
   $vars['classes_array'] = array('');
+  if (isset($vars['css_class']) && count($vars['css_class']) > 0) {
+    $vars['css_attributes'] = join(" ", $vars['css_class']);
+  }
+  else {
+    $vars['css_attributes'] = '';
+  }
   return $vars;
 }

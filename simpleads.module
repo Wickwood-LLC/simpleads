@@ -437,7 +437,7 @@ function simpleads_theme($existing, $type, $theme, $path) {
       'template' => 'simpleads_ajax_call',
     ),
     'simpleads_img_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
       'path' => $path . '/templates',
       'template' => 'simpleads_img_element',
       'preprocess functions' => array(
@@ -445,7 +445,7 @@ function simpleads_theme($existing, $type, $theme, $path) {
       ),
     ),
     'simpleads_text_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
       'path' => $path . '/templates',
       'template' => 'simpleads_text_element',
       'preprocess functions' => array(
@@ -453,7 +453,7 @@ function simpleads_theme($existing, $type, $theme, $path) {
       ),
     ),
     'simpleads_flash_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL),
+      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
       'path' => $path . '/templates',
       'template' => 'simpleads_flash_element',
       'preprocess functions' => array(

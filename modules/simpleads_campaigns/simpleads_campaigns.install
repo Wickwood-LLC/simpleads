@@ -130,7 +130,7 @@ function simpleads_campaigns_install() {
     'entity_type' => 'node',
     'label' => $t('Campaign'),
     'bundle' => 'simpleads',
-    'description' => $t('Please select campaign for this ad (if applicable). Do not specify End Date if this ad is in Campaign'),
+    'description' => $t('Please select campaign for this ad (if applicable).'),
     'required' => FALSE,
     'widget' => array(
       'type' => 'text_textfield',

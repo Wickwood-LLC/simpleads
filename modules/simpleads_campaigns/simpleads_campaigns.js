@@ -21,6 +21,24 @@
       $('#edit-field-adcamp-day input[id^=edit-field-adcamp-day-]').change(function(){
         _simpelads_campaigns_switch_form($(this), 'days');
       });
+
+      var campaigns = $('#edit-campaign').val();
+      if (campaigns == '_none') {
+        $('#edit-field-ad-end-date').show();
+      }
+      else {
+        $('#edit-field-ad-end-date').hide();
+      }
+
+      $('#edit-campaign').change(function(){
+        if ($(this).val() == '_none') {
+          $('#edit-field-ad-end-date').slideDown();
+        }
+        else {
+          $('#edit-field-ad-end-date').slideUp();
+        }
+      });
+
     }
   };
 }(jQuery));
