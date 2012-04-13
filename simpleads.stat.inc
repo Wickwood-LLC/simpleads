@@ -173,6 +173,7 @@ function _simpleads_group_filter_form_submit($form, &$form_state) {
  * Callback for Ads Listing page.
  */
 function _simpleads_listing() {
+  drupal_set_title(t('Advertisement Listing'));
 
   $filter_render = drupal_get_form('_simpleads_group_filter_form');
   $filter_form = drupal_render($filter_render);
@@ -199,30 +200,15 @@ function _simpleads_listing() {
 
     $node = node_load($record->nid);
     if ($node) {
-      $term_name = "";
-      if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
-        $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
-        $term_name = $term->name;
-      }
-      elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
-        $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
-        $term_name = $term->name;
-      }
 
-      $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
-      $ad_title .= _simpleads_stats_info($node, 'list');
-
-      $ad_group = !empty($term_name) ? $term_name : '';
-      $ad_group .= _simpleads_stats_info($node, 'ad_group');
+      $ad_title = _simpleads_stats_info($node, 'list');
+      $ad_group = _simpleads_stats_info($node, 'ad_group');
 
       $rows[] = array(
         array('data' => $ad_title),
         array('data' => $ad_group),
         array('data' => _simpleads_stats_info($node, 'ad_status')),
-        array('data' => l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
-                    l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads'))) . ' &nbsp;&nbsp; ' .
-                    l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads'))),
-        ),
+        array('data' => _simpleads_stats_info($node, 'ad_operations')),
       );
     }
   }
@@ -385,21 +371,4 @@ function _simpleads_get_statistics($table, $nid) {
   t('All Time');
 
   return $stats;
-}
-
-/**
- * Implements hook_simpleads_stats_info().
- */
-function simpleads_simpleads_stats_info($node, $op) {
-  if ($op == 'ad_status') {
-    return array(_simpleads_statuses($node));
-  }
-  if ($op == 'ad_status_detail') {
-    $days_left_str = "";
-    $days_left = _simpleads_date_diff($node);
-    if ($days_left && $days_left > 0) {
-      $days_left_str = ', ' . format_plural($days_left, '1 day left.', '@count days left.');
-    }
-    return array(_simpleads_statuses($node) . $days_left_str);
-  }
 }

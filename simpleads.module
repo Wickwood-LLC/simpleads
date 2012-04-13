@@ -455,6 +455,53 @@ function simpleads_simpleads_ad_impression($op, $nid) {
 }
 
 /**
+ * Implements hook_simpleads_stats_info().
+ */
+function simpleads_simpleads_stats_info($node, $op) {
+
+  if ($op == 'list') {
+    $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
+    return array($ad_title);
+  }
+
+  if ($op == 'ad_group') {
+    $term_name = "";
+    if (isset($node->field_ad_category[$node->language]) && !empty($node->field_ad_category[$node->language][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[$node->language][0]['tid']);
+      $term_name = $term->name;
+    }
+    elseif (isset($node->field_ad_category[LANGUAGE_NONE]) && !empty($node->field_ad_category[LANGUAGE_NONE][0]['tid'])) {
+      $term = taxonomy_term_load($node->field_ad_category[LANGUAGE_NONE][0]['tid']);
+      $term_name = $term->name;
+    }
+    $ad_group = !empty($term_name) ? $term_name : '';
+    return array($ad_group);
+  }
+
+  if ($op == 'ad_status') {
+    return array(_simpleads_statuses($node));
+  }
+
+  if ($op == 'ad_status_detail') {
+    $days_left_str = "";
+    $days_left = _simpleads_date_diff($node);
+    if ($days_left && $days_left > 0) {
+      $days_left_str = ', ' . format_plural($days_left, '1 day left.', '@count days left.');
+    }
+    return array(_simpleads_statuses($node) . $days_left_str);
+  }
+
+  if ($op == 'ad_operations') {
+    $operations = array();
+    $operations[] = l(t('Statistics'), 'admin/content/simpleads/' . $node->nid . '/stat') . ' &nbsp;&nbsp; ' .
+                    l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads'))) . ' &nbsp;&nbsp; ' .
+                    l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads')));
+    return $operations;
+  }
+
+}
+
+/**
  * Implements hook_theme().
  */
 function simpleads_theme($existing, $type, $theme, $path) {
