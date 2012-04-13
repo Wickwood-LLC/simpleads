@@ -419,6 +419,42 @@ function _simpleads_new_group_add() {
 }
 
 /**
+ * Implements hook_simpleads_ad_click().
+ */
+function simpleads_simpleads_ad_click($op, $nid) {
+  if ($op == 'insert') {
+    db_insert('simpleads_clicks')
+    ->fields(array(
+      'nid' => $nid,
+      'timestamp' => REQUEST_TIME,
+      'ip_address' => ip_address(),
+    ))
+    ->execute();
+  }
+  if ($op == 'delete') {
+    db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
+  }
+}
+
+/**
+ * Implements hook_simpleads_ad_impression().
+ */
+function simpleads_simpleads_ad_impression($op, $nid) {
+  if ($op == 'insert') {
+    db_insert('simpleads_impressions')
+    ->fields(array(
+      'nid' => $nid,
+      'timestamp' => REQUEST_TIME,
+      'ip_address' => ip_address(),
+    ))
+    ->execute();
+  }
+  if ($op == 'delete') {
+    db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
+  }
+}
+
+/**
  * Implements hook_theme().
  */
 function simpleads_theme($existing, $type, $theme, $path) {

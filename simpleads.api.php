@@ -63,6 +63,7 @@ function hook_simpleads_status_change($node, $status = NULL) {}
 
 /**
  * Preload ad.
+ * Allows to perform operations on ad $node object before display.
  *
  * @param int $nid
  */
@@ -74,7 +75,10 @@ function hook_simpleads_preload($nid) {}
  * @param string $op
  * @param int $nid
  */
-function hook_simpleads_ad_click($op, $nid) {}
+function hook_simpleads_ad_click($op, $nid) {
+  if ($op == 'insert') {}
+  if ($op == 'delete') {}
+}
 
 /**
  * Ad Impressed.
@@ -82,4 +86,7 @@ function hook_simpleads_ad_click($op, $nid) {}
  * @param string $op
  * @param int $nid
  */
-function hook_simpleads_ad_impression($op, $nid) {}
+function hook_simpleads_ad_impression($op, $nid) {
+  if ($op == 'insert') {}
+  if ($op == 'delete') {}
+}

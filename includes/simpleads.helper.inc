@@ -216,13 +216,6 @@ function _simpleads_node_stat_tab() {
  */
 function _simpleads_save_click($nid) {
   module_invoke_all('simpleads_ad_click', 'insert', $nid);
-  db_insert('simpleads_clicks')
-  ->fields(array(
-    'nid' => $nid,
-    'timestamp' => REQUEST_TIME,
-    'ip_address' => ip_address(),
-  ))
-  ->execute();
 }
 
 /**
@@ -233,7 +226,6 @@ function _simpleads_save_click($nid) {
  */
 function _simpleads_delete_click($nid) {
   module_invoke_all('simpleads_ad_click', 'delete', $nid);
-  db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
 }
 
 /**
@@ -244,13 +236,6 @@ function _simpleads_delete_click($nid) {
  */
 function _simpleads_save_impression($nid) {
   module_invoke_all('simpleads_ad_impression', 'insert', $nid);
-  db_insert('simpleads_impressions')
-  ->fields(array(
-    'nid' => $nid,
-    'timestamp' => REQUEST_TIME,
-    'ip_address' => ip_address(),
-  ))
-  ->execute();
 }
 
 /**
@@ -261,7 +246,6 @@ function _simpleads_save_impression($nid) {
  */
 function _simpleads_delete_impression($nid) {
   module_invoke_all('simpleads_ad_impression', 'delete', $nid);
-  db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
 }
 
 /**
