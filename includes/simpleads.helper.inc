@@ -130,6 +130,7 @@ function _simpleads_ads_data($node) {
       'image_uri' => $image_uri,
       'alt' => $alt,
       'nid' => $node->nid,
+      'node' => $node,
       'text' => $text_ad,
       'text_format' => $text_format,
       'flash' => $flash,
@@ -214,8 +215,8 @@ function _simpleads_node_stat_tab() {
  *
  * @param int $nid
  */
-function _simpleads_save_click($nid) {
-  module_invoke_all('simpleads_ad_click', 'insert', $nid);
+function _simpleads_save_click($node) {
+  module_invoke_all('simpleads_ad_click', 'insert', $node);
 }
 
 /**
@@ -224,8 +225,8 @@ function _simpleads_save_click($nid) {
  *
  * @param int $nid
  */
-function _simpleads_delete_click($nid) {
-  module_invoke_all('simpleads_ad_click', 'delete', $nid);
+function _simpleads_delete_click($node) {
+  module_invoke_all('simpleads_ad_click', 'delete', $node);
 }
 
 /**
@@ -234,8 +235,8 @@ function _simpleads_delete_click($nid) {
  *
  * @param int $nid
  */
-function _simpleads_save_impression($nid) {
-  module_invoke_all('simpleads_ad_impression', 'insert', $nid);
+function _simpleads_save_impression($node) {
+  module_invoke_all('simpleads_ad_impression', 'insert', $node);
 }
 
 /**
@@ -244,8 +245,8 @@ function _simpleads_save_impression($nid) {
  *
  * @param int $nid
  */
-function _simpleads_delete_impression($nid) {
-  module_invoke_all('simpleads_ad_impression', 'delete', $nid);
+function _simpleads_delete_impression($node) {
+  module_invoke_all('simpleads_ad_impression', 'delete', $node);
 }
 
 /**
@@ -255,11 +256,11 @@ function _simpleads_delete_impression($nid) {
  * @global object $user
  * @param object $node
  */
-function _simpleads_increase_impression($nid) {
+function _simpleads_increase_impression($node) {
   global $user;
   if (user_access('count ad impressions')) {
     if ($user->uid != 1 && !_simpleads_bot_detect()) {
-      _simpleads_save_impression($nid);
+      _simpleads_save_impression($node);
     }
   }
 }

@@ -52,22 +52,22 @@ function _simpelads_campaigns_switch_form(el, type) {
     el_clicks = $('form#simpleads-campaign-node-form #edit-field-adcamp-clicks');
     el_days = $('form#simpleads-campaign-node-form #edit-field-adcamp-days');
     if (el.attr('checked') == true && type == 'impressions') {
-      el_impressions.show();
+      el_impressions.slideDown();
     }
     if (el.attr('checked') == false && type == 'impressions') {
-      el_impressions.hide();
+      el_impressions.slideUp();
     }
     if (el.attr('checked') == true && type == 'clicks') {
-      el_clicks.show();
+      el_clicks.slideDown();
     }
     if (el.attr('checked') == false && type == 'clicks') {
-      el_clicks.hide();
+      el_clicks.slideUp();
     }
     if (el.attr('checked') == true && type == 'days') {
-      el_days.show();
+      el_days.slideDown();
     }
     if (el.attr('checked') == false && type == 'days') {
-      el_days.hide();
+      el_days.slideUp();
     }
   }(jQuery));
 }

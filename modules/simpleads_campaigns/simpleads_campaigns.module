@@ -134,6 +134,7 @@ function _simpleads_campaign_details($nid) {
       array('data' => t('Impressions left')),
       array('data' => t('Clicks left')),
       array('data' => t('Days left')),
+      array('data' => t('Status')),
       array('data' => t('Operations')),
     );
 
@@ -174,6 +175,7 @@ function _simpleads_campaign_details($nid) {
           array('data' => l($node->title, 'admin/content/simpleads/' . $record->nid . '/stat')),
           array('data' => $impressions),
           array('data' => $clicks),
+          array('data' => $days),
           array('data' => $days),
           array('data' => l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns/' . $nid)))),
         );
@@ -270,7 +272,7 @@ function simpleads_campaigns_simpleads_preload($nid) {
 /**
  * Implements hook_simpleads_ad_click().
  */
-function simpleads_campaigns_simpleads_ad_click($op, $nid) {
+function simpleads_campaigns_simpleads_ad_click($op, $node) {
   if ($op == 'insert') {
     _simpleads_campaigns_watch();
   }
@@ -279,7 +281,7 @@ function simpleads_campaigns_simpleads_ad_click($op, $nid) {
 /**
  * Implements hook_simpleads_ad_impression().
  */
-function simpleads_campaigns_simpleads_ad_impression($op, $nid) {
+function simpleads_campaigns_simpleads_ad_impression($op, $node) {
   if ($op == 'insert') {
     _simpleads_campaigns_watch();
   }

@@ -163,8 +163,8 @@ function simpleads_node_presave($node) {
  * Implements hook_node_delete().
  */
 function simpleads_node_delete($node) {
-  _simpleads_delete_click($node->nid);
-  _simpleads_delete_impression($node->nid);
+  _simpleads_delete_click($node);
+  _simpleads_delete_impression($node);
 }
 
 /**
@@ -389,7 +389,7 @@ function _simpleads_redirect($nid) {
       }
       else {
         if (user_access('count ad clicks') && !_simpleads_bot_detect()) {
-          _simpleads_save_click($node->nid);
+          _simpleads_save_click($node);
         }
         $url = _simpleads_validate_url($url);
         header("Location: " . $url);
@@ -421,36 +421,36 @@ function _simpleads_new_group_add() {
 /**
  * Implements hook_simpleads_ad_click().
  */
-function simpleads_simpleads_ad_click($op, $nid) {
+function simpleads_simpleads_ad_click($op, $node) {
   if ($op == 'insert') {
     db_insert('simpleads_clicks')
     ->fields(array(
-      'nid' => $nid,
+      'nid' => $node->nid,
       'timestamp' => REQUEST_TIME,
       'ip_address' => ip_address(),
     ))
     ->execute();
   }
   if ($op == 'delete') {
-    db_delete('simpleads_clicks')->condition('nid', $nid)->execute();
+    db_delete('simpleads_clicks')->condition('nid', $node->nid)->execute();
   }
 }
 
 /**
  * Implements hook_simpleads_ad_impression().
  */
-function simpleads_simpleads_ad_impression($op, $nid) {
+function simpleads_simpleads_ad_impression($op, $node) {
   if ($op == 'insert') {
     db_insert('simpleads_impressions')
     ->fields(array(
-      'nid' => $nid,
+      'nid' => $node->nid,
       'timestamp' => REQUEST_TIME,
       'ip_address' => ip_address(),
     ))
     ->execute();
   }
   if ($op == 'delete') {
-    db_delete('simpleads_impressions')->condition('nid', $nid)->execute();
+    db_delete('simpleads_impressions')->condition('nid', $node->nid)->execute();
   }
 }
 
@@ -577,7 +577,7 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
   $link_attributes = array();
   $image_attributes = array();
   $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['nid']);
+  _simpleads_increase_impression($vars['ad']['node']);
   // Image attributes
   $image_attributes['path'] = $vars['ad']['image_uri'];
   $image_attributes['alt'] = check_plain($vars['ad']['alt']);
@@ -604,7 +604,7 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
 function simpleads_preprocess_simpleads_text_element(&$vars) {
   $link_attributes = array();
   $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['nid']);
+  _simpleads_increase_impression($vars['ad']['node']);
   // Link attributes
   $link_attributes['html'] = TRUE;
   if ($vars['ad']['target'] && !user_access('administer nodes')) {
@@ -626,7 +626,7 @@ function simpleads_preprocess_simpleads_text_element(&$vars) {
  */
 function simpleads_preprocess_simpleads_flash_element(&$vars) {
   $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['nid']);
+  _simpleads_increase_impression($vars['ad']['node']);
 }
 
 /**

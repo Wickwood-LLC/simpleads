@@ -73,9 +73,9 @@ function hook_simpleads_preload($nid) {}
  * Ad Clicked.
  *
  * @param string $op
- * @param int $nid
+ * @param object $node
  */
-function hook_simpleads_ad_click($op, $nid) {
+function hook_simpleads_ad_click($op, $node) {
   if ($op == 'insert') {}
   if ($op == 'delete') {}
 }
@@ -84,9 +84,9 @@ function hook_simpleads_ad_click($op, $nid) {
  * Ad Impressed.
  *
  * @param string $op
- * @param int $nid
+ * @param object $node
  */
-function hook_simpleads_ad_impression($op, $nid) {
+function hook_simpleads_ad_impression($op, $node) {
   if ($op == 'insert') {}
   if ($op == 'delete') {}
 }
