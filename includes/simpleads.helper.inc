@@ -31,7 +31,7 @@ function _simpleads_load_ads($tid, $limit) {
           foreach ($queries[$i] as $row) {
             module_invoke_all('simpleads_preload', $row->nid);
             $node = node_load($row->nid);
-            $active = FALSE;
+            $active = TRUE;
             if (isset($node->field_ad_status[$node->language])) {
               if ($node->field_ad_status[$node->language][0]['value'] == 1) {
                 $active = TRUE;
@@ -60,7 +60,7 @@ function _simpleads_load_ads($tid, $limit) {
       foreach ($results as $row) {
         module_invoke_all('simpleads_preload', $row->nid);
         $node = node_load($row->nid);
-        $active = FALSE;
+        $active = TRUE;
         if (isset($node->field_ad_status[$node->language])) {
           if ($node->field_ad_status[$node->language][0]['value'] == 1) {
              $active = TRUE;

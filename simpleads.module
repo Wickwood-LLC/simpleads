@@ -5,6 +5,7 @@
  * SimpleAds module.
  */
 
+include("includes/simpleads.theme.inc");
 include("includes/simpleads.helper.inc");
 include("includes/simpleads.filter.inc");
 include("includes/simpleads.integration.inc");
@@ -516,135 +517,135 @@ function simpleads_simpleads_stats_info($node, $op) {
 }
 
 /**
- * Implements hook_theme().
+ * Implements hook_simpleads_order_info().
  */
-function simpleads_theme($existing, $type, $theme, $path) {
-  return array(
-    'simpleads_block' => array(
-      'variables' => array('tid' => NULL, 'prefix' => NULL, 'ads_limit' => NULL, 'ads_page' => NULL, 'ads_width' => NULL, 'ads_height' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_block',
-      'preprocess functions' => array(
-        'simpleads_preprocess_simpleads_block',
-      ),
-    ),
-    'simpleads_ajax_call' => array(
-      'variables' => array('content' => NULL, 'total_ads' => NULL, 'tid' => NULL, 'settings' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_ajax_call',
-    ),
-    'simpleads_img_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_img_element',
-      'preprocess functions' => array(
-        'simpleads_preprocess_simpleads_img_element',
-      ),
-    ),
-    'simpleads_text_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_text_element',
-      'preprocess functions' => array(
-        'simpleads_preprocess_simpleads_text_element',
-      ),
-    ),
-    'simpleads_flash_element' => array(
-      'variables' => array('ad' => NULL, 'settings' => NULL, 'css_class' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_flash_element',
-      'preprocess functions' => array(
-        'simpleads_preprocess_simpleads_flash_element',
-      ),
-    ),
-    'simpleads_filter_dashboard' => array(
-      'variables' => array('form' => NULL),
-      'path' => $path . '/templates',
-      'template' => 'simpleads_filter_dashboard',
-    ),
-  );
+function simpleads_simpleads_order_info() {
+  $delta = array();
+
+  $delta['random'] = t('Random');
+  $delta['order_created_desc'] = t('Order by created date DESC');
+  $delta['order_modified_desc'] = t('Order by modifed date DESC');
+  $delta['order_title_asc'] = t('Order by node title ASC');
+
+  // Nodequeue module integration
+  if (module_exists('nodequeue')) {
+    $qids = nodequeue_get_qids('simpleads');
+    foreach ($qids as $row) {
+      $nq = db_select('nodequeue_queue', 'nq')->fields('nq', array('name', 'title'))->condition('nq.qid', $row->qid)->execute()->fetchObject();
+      $delta[$nq->name] = t('Nodequeue: @name', array('@name' => $nq->title));
+    }
+  }
+  return $delta;
 }
 
 /**
- * Preprocess for simpleads_block.tpl.php
+ * Implements hook_simpleads_order().
  */
-function simpleads_preprocess_simpleads_block(&$vars) {
-  global $user;
-  $ads = array();
-
-  $vars = _simpleads_theme_attributes_init($vars);
-
-  $tid = $vars['tid'];
-  $limit = $vars['ads_limit'];
-
-  if (is_numeric($tid)) {
-    $ads = _simpleads_load_ads($tid, $limit);
+function simpleads_simpleads_order($delta, $term_ids, $limit) {
+  if ($delta == 'random') {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderRandom();
+    $query->range(0, $limit);
+    $query->addTag('node_access');
+    return $query->execute();
   }
-  $vars['ads'] = $ads;
-  $vars['user_id'] = $user->uid;
+  if ($delta == 'order_created_desc' || $delta == 1) {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderBy('n.created', 'DESC');
+    $query->range(0, $limit);
+    $query->addTag('node_access');
+    return $query->execute();
+  }
+  if ($delta == 'order_modified_desc' || $delta == 2) {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderBy('n.changed', 'DESC');
+    $query->range(0, $limit);
+    $query->addTag('node_access');
+    return $query->execute();
+  }
+  if ($delta == 'order_title_asc' || $delta == 3) {
+    $query = db_select('node', 'n');
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.type', 'simpleads');
+    $query->condition('ti.tid', $term_ids, 'IN');
+    $query->condition('n.status', 1);
+    $query->orderBy('n.title', 'ASC');
+    $query->range(0, $limit);
+    $query->addTag('node_access');
+    return $query->execute();
+  }
+  // Nodequeue module integration
+  if (module_exists('nodequeue')) {
+    $qids = nodequeue_get_qids('simpleads');
+    foreach ($qids as $row) {
+      if ($delta == 'queue_' . $row->qid) {
+        $query = db_select('nodequeue_nodes', 'nn');
+        $query->fields('nn', array('nid'));
+        $query->condition('nn.qid', $row->qid);
+        $query->orderBy('nn.position', 'DESC');
+        $query->addTag('node_access');
+        return $query->execute();
+      }
+    }
+  }
 }
 
 /**
- * Preprocess for simpleads_img_element.tpl.php
+ * Implements hook_node_load().
  */
-function simpleads_preprocess_simpleads_img_element(&$vars) {
-  $link_attributes = array();
-  $image_attributes = array();
-  $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['node']);
-  // Image attributes
-  $image_attributes['path'] = $vars['ad']['image_uri'];
-  $image_attributes['alt'] = check_plain($vars['ad']['alt']);
-  if (isset($vars['settings']['ads_width']) && is_numeric($vars['settings']['ads_width'])) {
-    $image_attributes['width'] = check_plain($vars['settings']['ads_width']);
+function simpleads_node_load($nodes, $types) {
+  foreach ($nodes as $i => $node) {
+    // Integartion with Domain Access module.
+    if (module_exists('domain')) {
+      if ($node->type == 'simpleads') {
+        $_domain = domain_get_domain();
+        $did = ($_domain['domain_id'] == '') ? 0 : $_domain['domain_id'];
+        $show = 0;
+        foreach ($node->domains as $gid) {
+          ($gid == -1) ? $key = 0 : $key = $gid;
+          $domain = domain_lookup($key);
+          if ($domain['domain_id'] == $did && in_array(-1, $node->domains)) $show = 1;
+          elseif ($domain['domain_id'] == $did) $show = 1;
+        }
+        $node->simpleads_show = $show;
+      }
+    }
+    else {
+      $node->simpleads_show = 1;
+    }
   }
-  if (isset($vars['settings']['ads_height']) && is_numeric($vars['settings']['ads_height'])) {
-    $image_attributes['height'] = check_plain($vars['settings']['ads_height']);
-  }
-
-  // Link attributes
-  $link_attributes['html'] = TRUE;
-  if ($vars['ad']['target'] && !user_access('administer nodes')) {
-    $link_attributes['attributes']['target'] = '_blank';
-  }
-
-  $vars['link_attributes'] = $link_attributes;
-  $vars['image_attributes'] = $image_attributes;
-}
-
-/**
- * Preprocess for simpleads_text_element.tpl.php
- */
-function simpleads_preprocess_simpleads_text_element(&$vars) {
-  $link_attributes = array();
-  $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['node']);
-  // Link attributes
-  $link_attributes['html'] = TRUE;
-  if ($vars['ad']['target'] && !user_access('administer nodes')) {
-    $link_attributes['attributes']['target'] = '_blank';
-  }
-  $text_ad = "";
-  if (!empty($vars['ad']['destination_url']) && $vars['ad']['text_format'] == 'plain_text') {
-    $text_ad = l($vars['ad']['text'], $vars['ad']['url'], $link_attributes);
-  }
-  else {
-    $text_ad = $vars['ad']['text'];
-  }
-
-  $vars['text_ad'] = $text_ad;
-}
-
-/**
- * Preprocess for simpleads_flash_element.tpl.php
- */
-function simpleads_preprocess_simpleads_flash_element(&$vars) {
-  $vars = _simpleads_theme_attributes_init($vars);
-  _simpleads_increase_impression($vars['ad']['node']);
 }
 
 /**
  * Implements hook_cron().
+ */
+function simpleads_cron() {
+
+  $ads = db_select('node', 'n')->fields('n')
+  ->condition('n.type', 'simpleads')
+  ->execute();
+
+  foreach ($ads as $ad) {
+    $node = node_load($ad->nid);
+    _simpleads_activate_deactive_ad($node);
+  }
+} * Implements hook_cron().
  */
 function simpleads_cron() {
 

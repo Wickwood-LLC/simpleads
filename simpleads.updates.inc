@@ -600,4 +600,15 @@ function simpleads_update_7005(&$sandbox) {
     ),
   );
   field_create_instance($instance);
+
+  // Set all published ads to be active.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('n.status', 1)
+    ->execute();
+  foreach ($result as $row) {
+    $node = node_load($row->nid);
+    $node->field_ad_status[$node->language][0]['value'] = 1;
+    node_save($node);
+  }
 }
