@@ -459,6 +459,16 @@ function simpleads_simpleads_ad_impression($op, $node) {
  */
 function simpleads_simpleads_stats_info($node, $op) {
 
+  $activity = t('Active');
+  if (isset($node->field_ad_status[$node->language])) {
+    if ($node->field_ad_status[$node->language][0]['value'] == 1) {
+      $activity = t('Active');
+    }
+    else {
+      $activity = t('Inactive');
+    }
+  }
+
   if ($op == 'list') {
     $ad_title = l($node->title, 'admin/content/simpleads/' . $node->nid . '/stat', array('html' => FALSE));
     return array($ad_title);
@@ -482,13 +492,17 @@ function simpleads_simpleads_stats_info($node, $op) {
     return array(_simpleads_statuses($node));
   }
 
+  if ($op == 'ad_activity') {
+    return array($activity);
+  }
+
   if ($op == 'ad_status_detail') {
     $days_left_str = "";
     $days_left = _simpleads_date_diff($node);
     if ($days_left && $days_left > 0) {
       $days_left_str = ', ' . format_plural($days_left, '1 day left.', '@count days left.');
     }
-    return array(_simpleads_statuses($node) . $days_left_str);
+    return array(_simpleads_statuses($node) . ' (' . $activity . ')' . $days_left_str);
   }
 
   if ($op == 'ad_operations') {

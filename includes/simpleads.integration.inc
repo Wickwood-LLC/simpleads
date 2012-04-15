@@ -144,6 +144,13 @@ function simpleads_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'simpleads' => 'simpleads',
   );
+  /* Filter criterion: Content: Status (field_ad_status) */
+  $handler->display->display_options['filters']['field_ad_status_value']['id'] = 'field_ad_status_value';
+  $handler->display->display_options['filters']['field_ad_status_value']['table'] = 'field_data_field_ad_status';
+  $handler->display->display_options['filters']['field_ad_status_value']['field'] = 'field_ad_status_value';
+  $handler->display->display_options['filters']['field_ad_status_value']['value'] = array(
+    1 => '1',
+  );
 
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block');

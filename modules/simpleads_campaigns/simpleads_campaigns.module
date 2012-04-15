@@ -8,6 +8,13 @@
 require_once("campaigns.helper.inc");
 
 /**
+ * Implements hook_init().
+ */
+function simpleads_campaigns_init() {
+  _simpleads_campaigns_watch();
+}
+
+/**
  * Implements hook_menu().
  */
 function simpleads_campaigns_menu() {

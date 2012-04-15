@@ -184,6 +184,7 @@ function _simpleads_listing() {
     array('data' => t('Ad Title')),
     array('data' => t('Ad Group')),
     array('data' => t('Status')),
+    array('data' => t('Active')),
     array('data' => t('Operations')),
   );
 
@@ -208,6 +209,7 @@ function _simpleads_listing() {
         array('data' => $ad_title),
         array('data' => $ad_group),
         array('data' => _simpleads_stats_info($node, 'ad_status')),
+        array('data' => _simpleads_stats_info($node, 'ad_activity')),
         array('data' => _simpleads_stats_info($node, 'ad_operations')),
       );
     }
