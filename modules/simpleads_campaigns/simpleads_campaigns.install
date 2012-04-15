@@ -120,6 +120,17 @@ function simpleads_campaigns_install() {
       'translatable' => TRUE,
       'entity_types' => array(),
     ),
+    array(
+      'field_name' => 'field_adcamp_start',
+      'type' => 'text',
+      'cardinality' => 1,
+      'translatable' => TRUE,
+      'settings' => array(
+        'max_length' => 255,
+      ),
+      'translatable' => TRUE,
+      'entity_types' => array(),
+    ),
   );
   foreach ($fields as $field) {
     field_create_field($field);
@@ -347,6 +358,33 @@ function simpleads_campaigns_install() {
   );
   field_create_instance($instance);
 
+  $instance = array(
+    'field_name' => 'field_adcamp_start',
+    'entity_type' => 'node',
+    'bundle' => 'simpleads_campaign',
+    'label' => $t('Start date'),
+    'description' => $t('Allowed date formats: now, tomorrow, next week, 10 September 2011, +1 day, +1 week, +1 year, +1 week 2 days 4 hours 2 seconds, next Monday, last Friday, mm/dd/yyyy hh:ss am/pm'),
+    'required' => TRUE,
+    'widget' => array(
+      'type' => 'text_textfield',
+      'settings' => array(
+        'size' => 60,
+      ),
+      'weight' => 14,
+    ),
+    'settings' => array(
+      'text_processing' => 0,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'text_default',
+        'settings' => array(),
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
 }
 
 /**
@@ -360,5 +398,6 @@ function simpleads_campaigns_uninstall() {
   field_delete_field('field_adcamp_clicks');
   field_delete_field('field_adcamp_day');
   field_delete_field('field_adcamp_days');
+  field_delete_field('field_adcamp_start');
   node_type_delete('simpleads_campaign');
 }

@@ -5,6 +5,8 @@
  * SimpleAds Campaigns module.
  */
 
+require_once("campaigns.helper.inc");
+
 /**
  * Implements hook_menu().
  */
@@ -15,6 +17,7 @@ function simpleads_campaigns_menu() {
     'page callback' => '_simpleads_campaign_new',
     'access callback' => '_simpleads_access_callback',
     'weight' => 17,
+    'file' => 'campaigns.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
 
@@ -23,6 +26,7 @@ function simpleads_campaigns_menu() {
     'page callback' => '_simpleads_campaign_listing',
     'access arguments' => array('access ad campaings'),
     'weight' => 17,
+    'file' => 'campaigns.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -32,6 +36,7 @@ function simpleads_campaigns_menu() {
     'page arguments' => array(3),
     'access arguments' => array('access ad campaings'),
     'weight' => 17,
+    'file' => 'campaigns.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -47,145 +52,6 @@ function simpleads_campaigns_permission() {
       'title' => t('Access advertisement campaings'),
     ),
   );
-}
-
-/**
- * Menu callback.
- * Redirect to SimpleAd Campiagn creation form.
- */
-function _simpleads_campaign_new() {
-  drupal_goto('node/add/simpleads-campaign', array('query' => array('destination' => 'admin/content/simpleads_campaigns')));
-}
-
-/**
- * Menu callback.
- * Campaigns listing page.
- */
-function _simpleads_campaign_listing() {
-  drupal_set_title(t('Advertisement Campaigns'));
-
-  $header = array(
-    array('data' => ''),
-    array('data' => t('Campaign')),
-    array('data' => t('Impressions')),
-    array('data' => t('Clicks')),
-    array('data' => t('Days')),
-    array('data' => t('Operations')),
-  );
-
-  $query = db_select('node', 'n')->extend('PagerDefault')->limit(15);
-  $query->fields('n', array('nid'));
-  $query->condition('n.type', 'simpleads_campaign');
-  $query->orderBy('n.changed', 'DESC');
-  $results = $query->execute();
-
-  $rows = array();
-  foreach ($results as $i => $record) {
-
-    $node = node_load($record->nid);
-    if ($node) {
-      $impressions = t('N/A');
-      if (isset($node->field_adcamp_impression[$node->language]) && $node->field_adcamp_impression[$node->language][0]['value'] == 1) {
-        if (isset($node->field_adcamp_impressions[$node->language]) && !empty($node->field_adcamp_impressions[$node->language][0]['safe_value'])) {
-          $impressions = $node->field_adcamp_impressions[$node->language][0]['safe_value'];
-        }
-      }
-      $clicks = t('N/A');
-      if (isset($node->field_adcamp_click[$node->language]) && $node->field_adcamp_click[$node->language][0]['value'] == 1) {
-        if (isset($node->field_adcamp_clicks[$node->language]) && !empty($node->field_adcamp_clicks[$node->language][0]['safe_value'])) {
-          $clicks = $node->field_adcamp_clicks[$node->language][0]['safe_value'];
-        }
-      }
-      $days = t('N/A');
-      if (isset($node->field_adcamp_day[$node->language]) && $node->field_adcamp_day[$node->language][0]['value'] == 1) {
-        if (isset($node->field_adcamp_days[$node->language]) && !empty($node->field_adcamp_days[$node->language][0]['safe_value'])) {
-          $days = $node->field_adcamp_days[$node->language][0]['safe_value'];
-        }
-      }
-      $rows[] = array(
-        array('data' => ($i + 1)),
-        array('data' => l($node->title, 'admin/content/simpleads_campaigns/' . $node->nid)),
-        array('data' => $impressions),
-        array('data' => $clicks),
-        array('data' => $days),
-        array('data' => 
-          l(t('View'), 'admin/content/simpleads_campaigns/' . $node->nid, array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; ' .
-          l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; ' .
-          l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; '
-        ),
-      );
-    }
-  }
-  return theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('There are no Campaigns'))) . theme('pager');
-}
-
-/**
- * Menu callback.
- * Campaign details.
- */
-function _simpleads_campaign_details($nid) {
-  if (is_numeric($nid)) {
-    $node = node_load($nid);
-    drupal_set_title($node->title);
-
-    $header = array(
-      array('data' => ''),
-      array('data' => t('Advertisement')),
-      array('data' => t('Impressions left')),
-      array('data' => t('Clicks left')),
-      array('data' => t('Days left')),
-      array('data' => t('Status')),
-      array('data' => t('Operations')),
-    );
-
-    $query = db_select('node', 'n')->extend('PagerDefault')->limit(25);
-    $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
-    $query->fields('n', array('nid'));
-    $query->fields('l', array('field_adcamp_list_value'));
-    $query->condition('n.type', 'simpleads');
-    $query->condition('l.field_adcamp_list_value', $node->nid);
-    $query->orderBy('n.changed', 'DESC');
-    $results = $query->execute();
-
-    $rows = array();
-    foreach ($results as $i => $record) {
-
-      $node = node_load($record->field_adcamp_list_value);
-      if ($node) {
-        $impressions = t('N/A');
-        if (isset($node->field_adcamp_impression[$node->language]) && $node->field_adcamp_impression[$node->language][0]['value'] == 1) {
-          if (isset($node->field_adcamp_impressions[$node->language]) && !empty($node->field_adcamp_impressions[$node->language][0]['safe_value'])) {
-            $impressions = $node->field_adcamp_impressions[$node->language][0]['safe_value'];
-          }
-        }
-        $clicks = t('N/A');
-        if (isset($node->field_adcamp_click[$node->language]) && $node->field_adcamp_click[$node->language][0]['value'] == 1) {
-          if (isset($node->field_adcamp_clicks[$node->language]) && !empty($node->field_adcamp_clicks[$node->language][0]['safe_value'])) {
-            $clicks = $node->field_adcamp_clicks[$node->language][0]['safe_value'];
-          }
-        }
-        $days = t('N/A');
-        if (isset($node->field_adcamp_day[$node->language]) && $node->field_adcamp_day[$node->language][0]['value'] == 1) {
-          if (isset($node->field_adcamp_days[$node->language]) && !empty($node->field_adcamp_days[$node->language][0]['safe_value'])) {
-            $days = $node->field_adcamp_days[$node->language][0]['safe_value'];
-          }
-        }
-        $rows[] = array(
-          array('data' => ($i + 1)),
-          array('data' => l($node->title, 'admin/content/simpleads/' . $record->nid . '/stat')),
-          array('data' => $impressions),
-          array('data' => $clicks),
-          array('data' => $days),
-          array('data' => $days),
-          array('data' => l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns/' . $nid)))),
-        );
-      }
-    }
-    return theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('There are no ads in this campaign'))) . theme('pager');
-  }
-  else {
-    return t('Invalid campaign id');
-  }
 }
 
 /**
@@ -233,6 +99,27 @@ function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
+ * Implements hook_node_presave().
+ */
+function simpleads_campaigns_node_presave($node) {
+  if ($node->type == 'simpleads' && isset($node->campaign)) {
+    $node->field_adcamp_list[$node->language][0]['value'] = $node->campaign;
+  }
+  if ($node->type == 'simpleads_campaign') {
+    $start_time = 0;
+
+    if (isset($node->field_adcamp_start[$node->language]) && !empty($node->field_adcamp_start[$node->language][0]['value'])) {
+      $start_time = $node->field_adcamp_start[$node->language][0]['value'];
+    }
+    $start_time = strtotime($start_time);
+
+    if ($start_time != 0) {
+      $node->field_adcamp_start[$node->language][0]['value'] = format_date($start_time, 'custom', 'm/d/Y h:i a');
+    }
+  }
+}
+
+/**
  * Implements hook_simpleads_stats_info().
  */
 function simpleads_campaigns_simpleads_stats_info($node, $op) {
@@ -241,15 +128,6 @@ function simpleads_campaigns_simpleads_stats_info($node, $op) {
   }
   if ($op == 'ad_status') {
    // return array('Item on the ads listing page');
-  }
-}
-
-/**
- * Implements hook_node_presave().
- */
-function simpleads_campaigns_node_presave($node) {
-  if ($node->type == 'simpleads' && isset($node->campaign)) {
-    $node->field_adcamp_list[$node->language][0]['value'] = $node->campaign;
   }
 }
 
@@ -292,116 +170,4 @@ function simpleads_campaigns_simpleads_ad_impression($op, $node) {
  */
 function simpleads_campaigns_cron() {
   _simpleads_campaigns_watch();
-}
-
-/**
- * Helper function.
- * Timestamp to days.
- */
-function _simpleads_campains_date_diff($node) {
-  $start_time = "";
-  $end_time = "";
-
-  if (isset($node->field_ad_start_date[$node->language]) && !empty($node->field_ad_start_date[$node->language][0]['value'])) {
-    $start_time = $node->field_ad_start_date[$node->language][0]['value'];
-  }
-
-  $ustart_time = strtotime($start_time);
-  $uend_time = REQUEST_TIME;
-  $now = time();
-
-  if ($ustart_time == '' && $uend_time != '') {
-    return floor(($uend_time - $now) / 86400);
-  }
-  elseif ($ustart_time != '' && $uend_time != '') {
-    return floor(($uend_time - $ustart_time) / 86400);
-  }
-  elseif ($ustart_time == '' && $uend_time == '') {
-    return FALSE;
-  }
-  else {
-    return 0;
-  }
-}
-
-/**
- * Helper function.
- */
-function _simpleads_campaigns_watch() {
-  module_load_include('inc', 'simpleads', 'simpleads.stat');
-  $results = db_select('node', 'n')
-    ->fields('n', array('nid'))
-    ->condition('n.status', 1)
-    ->condition('n.type', 'simpleads_campaign')
-    ->orderBy('n.title')
-    ->execute();
-  foreach ($results as $row) {
-    $campaign = node_load($row->nid);
-    $query = db_select('node', 'n');
-    $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
-    $query->fields('n', array('nid'));
-    $query->condition('n.status', 1)
-      ->condition('n.type', 'simpleads')
-      ->condition('l.field_adcamp_list_value', $row->nid)
-      ->orderBy('n.title');
-
-    $by_impressions = FALSE;
-    $impressions_number = "";
-    $by_clicks = FALSE;
-    $clicks_number = "";
-    $by_days = FALSE;
-    $days_number = "";
-
-    if (isset($campaign->field_adcamp_impression[$campaign->language]) && $campaign->field_adcamp_impression[$campaign->language][0]['value'] == 1) {
-      $by_impressions = TRUE;
-      if (isset($campaign->field_adcamp_impressions[$campaign->language]) && !empty($campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'])) {
-        $impressions_number = $campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'];
-      }
-    }
-
-    if (isset($campaign->field_adcamp_click[$campaign->language]) && $campaign->field_adcamp_click[$campaign->language][0]['value'] == 1) {
-      $by_clicks = TRUE;
-      if (isset($campaign->field_adcamp_clicks[$campaign->language]) && !empty($campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'])) {
-        $clicks_number = $campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'];
-      }
-    }
-
-    if (isset($campaign->field_adcamp_day[$campaign->language]) && $campaign->field_adcamp_day[$campaign->language][0]['value'] == 1) {
-      $by_days = TRUE;
-      if (isset($campaign->field_adcamp_days[$campaign->language]) && !empty($campaign->field_adcamp_days[$campaign->language][0]['safe_value'])) {
-        $days_number = $campaign->field_adcamp_days[$campaign->language][0]['safe_value'];
-      }
-    }
-
-    $ads = $query->execute();
-    foreach ($ads as $ad) {
-      $clicks = _simpleads_get_statistics('simpleads_clicks', $ad->nid);
-      $impressions = _simpleads_get_statistics('simpleads_impressions', $ad->nid);
-      $all_clicks = explode('/', $clicks['All Time']);
-      $all_impressions = explode('/', $impressions['All Time']);
-      $node = node_load($ad->nid);
-      $days_left = _simpleads_campains_date_diff($node);
-      if ($by_impressions && $by_clicks && $by_days) {
-        if ($all_impressions[1] >= $impressions_number || $all_clicks[1] >= $clicks_number || $days_left >= $days_number) {
-          $node->status = 0;
-          $node->field_ad_status[$node->language][0]['value'] = 0;
-          node_save($node);
-        }
-      }
-      elseif ($by_impressions && $by_clicks && !$by_days) {
-        if ($all_impressions[1] >= $impressions_number || $all_clicks[1] >= $clicks_number) {
-          $node->status = 0;
-          $node->field_ad_status[$node->language][0]['value'] = 0;
-          node_save($node);
-        }
-      }
-      elseif ($by_impressions && !$by_clicks && !$by_days) {
-        if ($all_impressions[0] >= $impressions_number) {
-          $node->status = 0;
-          $node->field_ad_status[$node->language][0]['value'] = 0;
-          node_save($node);
-        }
-      }
-    }
-  }
 }
