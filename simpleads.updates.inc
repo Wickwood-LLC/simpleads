@@ -533,7 +533,7 @@ function simpleads_update_7004(&$sandbox) {
 }
 
 /**
- * Create a new field for Ad status.
+ * Create a new field for Ad status. Disalbe comments on SimpleAds content type.
  */
 function simpleads_update_7005(&$sandbox) {
 
@@ -611,4 +611,9 @@ function simpleads_update_7005(&$sandbox) {
     $node->field_ad_status[$node->language][0]['value'] = 1;
     node_save($node);
   }
+
+  // Reset menu, comments and other default options.
+  variable_set('menu_options_simpleads', array());
+  variable_set('node_options_simpleads', array());
+  variable_set('comment_simpleads', 1);
 }

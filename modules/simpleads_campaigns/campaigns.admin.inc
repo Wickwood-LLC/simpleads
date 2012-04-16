@@ -134,6 +134,7 @@ function _simpleads_campaign_details($nid) {
     $rows = array();
     foreach ($results as $i => $record) {
 
+      $css_complete = "";
       $node = node_load($record->nid);
       if ($campaign) {
         $impressions = t('N/A');
@@ -143,6 +144,7 @@ function _simpleads_campaign_details($nid) {
             $impressions = $campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'] - $count;
             if ($impressions <= 0) {
               $impressions = t('Complete');
+              $css_complete = 'complete';
             }
           }
         }
@@ -153,6 +155,7 @@ function _simpleads_campaign_details($nid) {
             $clicks = $campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'] - $count;
             if ($clicks <= 0) {
               $clicks = t('Complete');
+              $css_complete = 'complete';
             }
           }
         }
@@ -164,6 +167,7 @@ function _simpleads_campaign_details($nid) {
             $count = _simpleads_campains_date_diff($campaign_end_time, $campaign_start_time);
             if ($count <= 0) {
               $days = t('Complete');
+              $css_complete = 'complete';
             }
             else {
               $days = $count;
@@ -177,13 +181,16 @@ function _simpleads_campaign_details($nid) {
            }
         }
         $rows[] = array(
-          array('data' => ($i + 1)),
-          array('data' => l($node->title, 'admin/content/simpleads/' . $record->nid . '/stat')),
-          array('data' => $impressions),
-          array('data' => $clicks),
-          array('data' => $days),
-          array('data' => $ad_status),
-          array('data' => l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns/' . $nid)))),
+          'data' => array(
+            ($i + 1),
+            l($node->title, 'admin/content/simpleads/' . $record->nid . '/stat'),
+            $impressions,
+            $clicks,
+            $days,
+            $ad_status,
+            l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns/' . $nid)))
+          ),
+          'class' => array($css_complete),
         );
       }
     }

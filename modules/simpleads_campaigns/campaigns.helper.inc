@@ -53,15 +53,27 @@ function _simpleads_campaigns_watch() {
  * Deactivate ad if the ad riches campaings limits.
  * @param int $nid
  */
-function _simpleads_campaigns_complete($nid) {
-  $campaign = node_load($nid);
-  $query = db_select('node', 'n');
-  $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
-  $query->fields('n', array('nid'));
-  $query->condition('n.status', 1)
-    ->condition('n.type', 'simpleads')
-    ->condition('l.field_adcamp_list_value', $nid)
-    ->orderBy('n.title');
+function _simpleads_campaigns_complete($campaign_nid, $ad_node = FALSE) {
+  // Check campaign filter for all ads within the given campaign.
+  if (!is_object($ad_node)) {
+    $campaign = node_load($campaign_nid);
+    $query = db_select('node', 'n');
+    $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
+    $query->fields('n', array('nid'));
+    $query->condition('n.status', 1)
+      ->condition('n.type', 'simpleads')
+      ->condition('l.field_adcamp_list_value', $campaign->nid)
+      ->orderBy('n.title');
+    $ads = $query->execute();
+  }
+  // check compaign filter for single ad.
+  else {
+    $node = $ad_node;
+    $ads = array($node);
+    if (isset($node->field_adcamp_list[$node->language]) && !empty($node->field_adcamp_list[$node->language][0]['safe_value'])) {
+      $campaign = node_load($node->field_adcamp_list[$node->language][0]['safe_value']);
+    }
+  }
 
   $by_impressions = FALSE;
   $impressions_number = "";
@@ -97,47 +109,38 @@ function _simpleads_campaigns_complete($nid) {
     }
   }
 
-  $ads = $query->execute();
   foreach ($ads as $ad) {
+    if (!is_object($ad_node)) {
+      $node = node_load($ad->nid);
+    }
     $all_clicks = _simpleads_campaigns_count_ad_clicks($campaign_start_time, $ad->nid);
     $all_impressions = _simpleads_campaigns_count_ad_impressions($campaign_start_time, $ad->nid);
-    $node = node_load($ad->nid);
 
     $campaign_end_time = REQUEST_TIME - (24 * 3600 * $days_number);
     $days_left = _simpleads_campains_date_diff($campaign_end_time, $campaign_start_time);
     if ($by_impressions && $by_clicks && $by_days) {
       if ($all_impressions >= $impressions_number || $all_clicks >= $clicks_number || $days_left <= 0) {
-        $node->status = 0;
-        $node->field_ad_status[$node->language][0]['value'] = 0;
-        node_save($node);
+        module_invoke_all('simpleads_campaign_complete', $node);
       }
     }
     elseif ($by_impressions && $by_clicks && !$by_days) {
       if ($all_impressions >= $impressions_number || $all_clicks >= $clicks_number) {
-        $node->status = 0;
-        $node->field_ad_status[$node->language][0]['value'] = 0;
-        node_save($node);
+        module_invoke_all('simpleads_campaign_complete', $node);
       }
     }
     elseif (!$by_impressions && $by_clicks && !$by_days) {
       if ($all_clicks >= $clicks_number) {
-        $node->status = 0;
-        $node->field_ad_status[$node->language][0]['value'] = 0;
-        node_save($node);
+        module_invoke_all('simpleads_campaign_complete', $node);
       }
     }
     elseif (!$by_impressions && !$by_clicks && !$by_days) {
       if ($days_left <= 0) {
-        $node->status = 0;
-        $node->field_ad_status[$node->language][0]['value'] = 0;
-        node_save($node);
+        module_invoke_all('simpleads_campaign_complete', $node);
       }
     }
     elseif ($by_impressions && !$by_clicks && !$by_days) {
       if ($all_impressions >= $impressions_number) {
-        $node->status = 0;
-        $node->field_ad_status[$node->language][0]['value'] = 0;
-        node_save($node);
+        module_invoke_all('simpleads_campaign_complete', $node);
       }
     }
 
@@ -153,7 +156,7 @@ function _simpleads_campaigns_complete($nid) {
  */
 function _simpleads_campaigns_count_ad_impressions($timestamp, $nid) {
   $count = db_select('simpleads_impressions', 'sc')
-  ->condition("sc.nid", $nid)->condition('sc.timestamp', $timestamp, '>=')//->groupBy('sc.ip_address')
+  ->condition("sc.nid", $nid)->condition('sc.timestamp', $timestamp, '>=')->groupBy('sc.ip_address')
   ->countQuery()->execute()->fetchField();
   return $count;
 }
@@ -167,7 +170,7 @@ function _simpleads_campaigns_count_ad_impressions($timestamp, $nid) {
  */
 function _simpleads_campaigns_count_ad_clicks($timestamp, $nid) {
   $count = db_select('simpleads_clicks', 'sc')
-  ->condition("sc.nid", $nid)->condition('sc.timestamp', $timestamp, '>=')//->groupBy('sc.ip_address')
+  ->condition("sc.nid", $nid)->condition('sc.timestamp', $timestamp, '>=')->groupBy('sc.ip_address')
   ->countQuery()->execute()->fetchField();
   return $count;
 }
