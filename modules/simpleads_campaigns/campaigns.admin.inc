@@ -86,8 +86,7 @@ function _simpleads_campaign_listing() {
         array('data' => $clicks),
         array('data' => $days),
         array('data' => $is_active),
-        array('data' => 
-          l(t('View'), 'admin/content/simpleads_campaigns/' . $node->nid, array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; ' .
+        array('data' => l(t('View'), 'admin/content/simpleads_campaigns/' . $node->nid, array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; ' .
           l(t('Edit'), 'node/' . $node->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; ' .
           l(t('Delete'), 'node/' . $node->nid . '/delete', array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '&nbsp;&nbsp; '
         ),
@@ -105,7 +104,7 @@ function _simpleads_campaign_details($nid) {
   if (is_numeric($nid)) {
     $campaign_information = array();
     $campaign = node_load($nid);
-    drupal_set_title('Advertisement Campaign');
+    drupal_set_title(t('Advertisement Campaign'));
 
     $header = array(
       array('data' => ''),
@@ -136,7 +135,7 @@ function _simpleads_campaign_details($nid) {
         $campaign_information[] = '<div>' . t('Days limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_days[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
       }
     }
-    $campaign_information[] = '<br>';
+    $campaign_information[] = '<br />';
 
     $query = db_select('node', 'n')->extend('PagerDefault')->limit(25);
     $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
@@ -199,8 +198,8 @@ function _simpleads_campaign_details($nid) {
         $ad_status = t('Inactive');
         if (isset($node->field_ad_status[$node->language])) {
           if ($node->field_ad_status[$node->language][0]['value'] == 1) {
-             $ad_status = t('Active');
-           }
+            $ad_status = t('Active');
+          }
         }
         $rows[] = array(
           'data' => array(

@@ -63,8 +63,8 @@ function _simpleads_load_ads($tid, $limit) {
         $active = TRUE;
         if (isset($node->field_ad_status[$node->language])) {
           if ($node->field_ad_status[$node->language][0]['value'] == 1) {
-             $active = TRUE;
-           }
+            $active = TRUE;
+          }
           else {
             $active = FALSE;
           }

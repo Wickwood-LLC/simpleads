@@ -88,8 +88,8 @@ function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
       }
       $form['campaign'] = array(
         '#type' => 'select',
-        '#title' => $title,
-        '#description' => $description,
+        '#title' => check_plain($title),
+        '#description' => check_plain($description),
         '#weight' => 9,
         '#options' => $campaigns,
         '#default_value' => $default,
@@ -175,11 +175,11 @@ function simpleads_campaigns_simpleads_ad_impression($op, $node) {
  * Implements hook_simpleads_campaign_complete().
  */
 function simpleads_campaigns_simpleads_campaign_complete($node) {
- if (is_object($node)) {
-   $node->status = 0;
-   $node->field_ad_status[$node->language][0]['value'] = 0;
-   node_save($node);
- }
+  if (is_object($node)) {
+    $node->status = 0;
+    $node->field_ad_status[$node->language][0]['value'] = 0;
+    node_save($node);
+  }
 }
 
 /**

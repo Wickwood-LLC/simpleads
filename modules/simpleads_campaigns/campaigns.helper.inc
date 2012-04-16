@@ -45,7 +45,7 @@ function _simpleads_campaigns_watch() {
     ->execute();
 
   foreach ($results as $row) {
-     _simpleads_campaigns_complete($row->nid);
+    _simpleads_campaigns_complete($row->nid);
   }
 }
 

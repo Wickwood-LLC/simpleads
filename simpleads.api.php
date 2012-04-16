@@ -73,20 +73,22 @@ function hook_simpleads_preload($nid) {}
  * Ad Clicked.
  *
  * @param string $op
+ * - insert
+ * - delete
+ *
  * @param object $node
  */
-function hook_simpleads_ad_click($op, $node) {
-  if ($op == 'insert') {}
-  if ($op == 'delete') {}
-}
+function hook_simpleads_ad_click($op, $node) {}
 
 /**
  * Ad Impressed.
  *
  * @param string $op
+ * - insert
+ * - delete
+ *
  * @param object $node
  */
-function hook_simpleads_ad_impression($op, $node) {
-  if ($op == 'insert') {}
+function hook_simpleads_ad_impression($op, $node) {} if ($op == 'insert') {}
   if ($op == 'delete') {}
 }
