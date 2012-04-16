@@ -39,6 +39,124 @@ function simpleads_views_plugins() {
 }
 
 /**
+ * Implements hook_views_data().
+ */
+function simpleads_views_data() {
+  // Describe simpleads_clicks table.
+  $data['simpleads_clicks']['table']['group'] = t('SimpleAds clicks');
+  $data['simpleads_clicks']['table']['base'] = array(
+    'field' => 'nid',
+    'title' => t('SimpleAds clicks'),
+    'help' => t("This table contains ad clicks statistics."),
+    'weight' => 0,
+  );
+  $data['simpleads_clicks']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'nid',
+    ),
+  );
+  $data['simpleads_clicks']['nid'] = array(
+    'title' => t('Advertisement id'),
+    'help' => t('References to SimpleAd node.'),
+    'relationship' => array(
+      'base' => 'node',
+      'field' => 'nid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('SimpleAd node'),
+    ),
+  );
+  $data['simpleads_clicks']['ip_address'] = array(
+    'title' => t('Ip Address'),
+    'help' => t('Ip address of the visitor.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+  $data['simpleads_clicks']['timestamp'] = array(
+    'title' => t('Timestamp'),
+    'help' => t('Timestamp when someone clicked on the ad.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+
+  // Describe simpleads_impressions table.
+  $data['simpleads_impressions']['table']['group'] = t('SimpleAds impressions');
+  $data['simpleads_impressions']['table']['base'] = array(
+    'field' => 'nid',
+    'title' => t('SimpleAds impressions'),
+    'help' => t("This table contains ad impressions statistics."),
+    'weight' => 0,
+  );
+  $data['simpleads_impressions']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'nid',
+    ),
+  );
+  $data['simpleads_impressions']['nid'] = array(
+    'title' => t('Advertisement id'),
+    'help' => t('References to SimpleAd node.'),
+    'relationship' => array(
+      'base' => 'node',
+      'field' => 'nid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('SimpleAd node'),
+    ),
+  );
+  $data['simpleads_impressions']['ip_address'] = array(
+    'title' => t('Ip Address'),
+    'help' => t('Ip address of the visitor.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+  $data['simpleads_impressions']['timestamp'] = array(
+    'title' => t('Timestamp'),
+    'help' => t('Timestamp when when the ad was displayed.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+  return $data;
+}
+
+/**
  * Implements hook_views_default_views().
  */
 function simpleads_views_default_views() {
