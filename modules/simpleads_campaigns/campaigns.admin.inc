@@ -105,7 +105,7 @@ function _simpleads_campaign_details($nid) {
   if (is_numeric($nid)) {
     $campaign_information = array();
     $campaign = node_load($nid);
-    drupal_set_title($campaign->title);
+    drupal_set_title('Advertisement Campaign');
 
     $header = array(
       array('data' => ''),
@@ -117,8 +117,10 @@ function _simpleads_campaign_details($nid) {
       array('data' => t('Operations')),
     );
 
+    $campaign_information[] = '<div><h2>' . $campaign->title . ' - ' . l(t('Edit'), 'node/' . $campaign->nid . '/edit', array('query' => array('destination' => 'admin/content/simpleads_campaigns'))) . '</h2></div>';
     $campaign_information[] = '<div><em>' . t('The ad remains in Active state until it reaches the number of impressions, clicks or the number of days, whichever comes first.') . '</em></div>';
     $campaign_information[] = '<hr>';
+
     if (isset($campaign->field_adcamp_impression[$campaign->language]) && $campaign->field_adcamp_impression[$campaign->language][0]['value'] == 1) {
       if (isset($campaign->field_adcamp_impressions[$campaign->language]) && !empty($campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'])) {
         $campaign_information[] = '<div>' . t('Impressions limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
