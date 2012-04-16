@@ -50,25 +50,25 @@ function _simpleads_campaign_listing() {
 
     $node = node_load($record->nid);
     if ($node) {
-      $impressions = t('N/A');
+      $impressions = '-';
       if (isset($node->field_adcamp_impression[$node->language]) && $node->field_adcamp_impression[$node->language][0]['value'] == 1) {
         if (isset($node->field_adcamp_impressions[$node->language]) && !empty($node->field_adcamp_impressions[$node->language][0]['safe_value'])) {
           $impressions = $node->field_adcamp_impressions[$node->language][0]['safe_value'];
         }
       }
-      $clicks = t('N/A');
+      $clicks = '-';
       if (isset($node->field_adcamp_click[$node->language]) && $node->field_adcamp_click[$node->language][0]['value'] == 1) {
         if (isset($node->field_adcamp_clicks[$node->language]) && !empty($node->field_adcamp_clicks[$node->language][0]['safe_value'])) {
           $clicks = $node->field_adcamp_clicks[$node->language][0]['safe_value'];
         }
       }
-      $days = t('N/A');
+      $days = '-';
       if (isset($node->field_adcamp_day[$node->language]) && $node->field_adcamp_day[$node->language][0]['value'] == 1) {
         if (isset($node->field_adcamp_days[$node->language]) && !empty($node->field_adcamp_days[$node->language][0]['safe_value'])) {
           $days = $node->field_adcamp_days[$node->language][0]['safe_value'];
         }
       }
-      $start_date = t('N/A');
+      $start_date = '-';
       if (isset($node->field_adcamp_start[$node->language]) && !empty($node->field_adcamp_start[$node->language][0]['value'])) {
         if (isset($node->field_adcamp_start[$node->language]) && !empty($node->field_adcamp_start[$node->language][0]['safe_value'])) {
           $start_date = $node->field_adcamp_start[$node->language][0]['safe_value'];
@@ -103,6 +103,7 @@ function _simpleads_campaign_listing() {
  */
 function _simpleads_campaign_details($nid) {
   if (is_numeric($nid)) {
+    $campaign_information = array();
     $campaign = node_load($nid);
     drupal_set_title($campaign->title);
 
@@ -115,6 +116,25 @@ function _simpleads_campaign_details($nid) {
       array('data' => t('Ad Status')),
       array('data' => t('Operations')),
     );
+
+    $campaign_information[] = '<div><em>' . t('The ad remains in Active state until it reaches the number of impressions, clicks or the number of days, whichever comes first.') . '</em></div>';
+    $campaign_information[] = '<hr>';
+    if (isset($campaign->field_adcamp_impression[$campaign->language]) && $campaign->field_adcamp_impression[$campaign->language][0]['value'] == 1) {
+      if (isset($campaign->field_adcamp_impressions[$campaign->language]) && !empty($campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'])) {
+        $campaign_information[] = '<div>' . t('Impressions limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
+      }
+    }
+    if (isset($campaign->field_adcamp_click[$campaign->language]) && $campaign->field_adcamp_click[$campaign->language][0]['value'] == 1) {
+      if (isset($campaign->field_adcamp_clicks[$campaign->language]) && !empty($campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'])) {
+        $campaign_information[] = '<div>' . t('Clicks limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
+      }
+    }
+    if (isset($campaign->field_adcamp_day[$campaign->language]) && $campaign->field_adcamp_day[$campaign->language][0]['value'] == 1) {
+      if (isset($campaign->field_adcamp_days[$campaign->language]) && !empty($campaign->field_adcamp_days[$campaign->language][0]['safe_value'])) {
+        $campaign_information[] = '<div>' . t('Days limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_days[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
+      }
+    }
+    $campaign_information[] = '<br>';
 
     $query = db_select('node', 'n')->extend('PagerDefault')->limit(25);
     $query->join('field_data_field_adcamp_list', 'l', 'l.entity_id = n.nid AND l.revision_id = n.vid');
@@ -137,7 +157,7 @@ function _simpleads_campaign_details($nid) {
       $css_complete = "";
       $node = node_load($record->nid);
       if ($campaign) {
-        $impressions = t('N/A');
+        $impressions = '-';
         if (isset($campaign->field_adcamp_impression[$campaign->language]) && $campaign->field_adcamp_impression[$campaign->language][0]['value'] == 1) {
           if (isset($campaign->field_adcamp_impressions[$campaign->language]) && !empty($campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'])) {
             $count = _simpleads_campaigns_count_ad_impressions($campaign_start_time, $node->nid);
@@ -148,7 +168,7 @@ function _simpleads_campaign_details($nid) {
             }
           }
         }
-        $clicks = t('N/A');
+        $clicks = '-';
         if (isset($campaign->field_adcamp_click[$campaign->language]) && $campaign->field_adcamp_click[$campaign->language][0]['value'] == 1) {
           if (isset($campaign->field_adcamp_clicks[$campaign->language]) && !empty($campaign->field_adcamp_clicks[$campaign->language][0]['safe_value'])) {
             $count = _simpleads_campaigns_count_ad_clicks($campaign_start_time, $node->nid);
@@ -159,7 +179,7 @@ function _simpleads_campaign_details($nid) {
             }
           }
         }
-        $days = t('N/A');
+        $days = '-';
         if (isset($campaign->field_adcamp_day[$campaign->language]) && $campaign->field_adcamp_day[$campaign->language][0]['value'] == 1) {
           if (isset($campaign->field_adcamp_days[$campaign->language]) && !empty($campaign->field_adcamp_days[$campaign->language][0]['safe_value'])) {
             $days = $campaign->field_adcamp_days[$campaign->language][0]['safe_value'];
@@ -194,7 +214,7 @@ function _simpleads_campaign_details($nid) {
         );
       }
     }
-    return l(t('&#171; Back to campaigns listing'), 'admin/content/simpleads_campaigns', array('html' => TRUE)) . '<br><br>'
+    return join("", $campaign_information)
       . theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('There are no ads in this campaign'))) . theme('pager');
   }
   else {

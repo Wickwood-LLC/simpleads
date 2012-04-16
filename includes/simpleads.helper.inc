@@ -392,7 +392,7 @@ function _simpleads_stats_info($node, $op = 'list') {
       foreach ($hook as $data) {
           $result[] = '<div class="stat-item">' . $data . '</div>';
       }
-      return '<div class="simpleads-stat-' . $op . '">' . join("<br />", $result) . '</div>';
+      return '<div class="simpleads-stat-' . $op . '">' . join("", $result) . '</div>';
     }
   }
 }

@@ -123,11 +123,16 @@ function simpleads_campaigns_node_presave($node) {
  * Implements hook_simpleads_stats_info().
  */
 function simpleads_campaigns_simpleads_stats_info($node, $op) {
-  if ($op == 'list') {
- //   return array('Item on the ads listing page');
+  $campaign_link = "";
+  if (isset($node->field_adcamp_list[$node->language]) && is_numeric($node->field_adcamp_list[$node->language][0]['safe_value'])) {
+    $campaign = node_load($node->field_adcamp_list[$node->language][0]['safe_value']);
+    $campaign_link = t('This ad participates in !link campaign', array('!link' => l($campaign->title, 'admin/content/simpleads_campaigns/' . $campaign->nid)));
   }
-  if ($op == 'ad_status') {
-   // return array('Item on the ads listing page');
+  if ($op == 'list') {
+    return array($campaign_link);
+  }
+  if ($op == 'ad_status_detail') {
+    return array($campaign_link);
   }
 }
 

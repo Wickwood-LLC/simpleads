@@ -33,6 +33,7 @@ function _simpleads_campains_date_diff($ustart_time, $uend_time) {
 
 /**
  * Helper function.
+ * Check campaign criterias and set ads to active/inactive states.
  */
 function _simpleads_campaigns_watch() {
 
@@ -70,7 +71,7 @@ function _simpleads_campaigns_complete($campaign_nid, $ad_node = FALSE) {
   else {
     $node = $ad_node;
     $ads = array($node);
-    if (isset($node->field_adcamp_list[$node->language]) && !empty($node->field_adcamp_list[$node->language][0]['safe_value'])) {
+    if (isset($node->field_adcamp_list[$node->language]) && is_numeric($node->field_adcamp_list[$node->language][0]['safe_value'])) {
       $campaign = node_load($node->field_adcamp_list[$node->language][0]['safe_value']);
     }
   }
