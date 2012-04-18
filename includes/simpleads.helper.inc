@@ -310,6 +310,12 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
         node_save($node);
       }
     }
+    elseif($now <= $start_time) {
+      $node->status = 0;
+      if ($who == 'cron') {
+        node_save($node);
+      }
+    }
     elseif ($end_time <= $now) {
       $node->status = 0;
       if ($who == 'cron') {
