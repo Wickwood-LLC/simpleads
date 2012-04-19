@@ -67,7 +67,6 @@ function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
       ->fields('n', array('title', 'nid'))
       ->condition('n.status', 1)
       ->condition('n.type', 'simpleads_campaign')
-      ->condition('n.language', $lang)
       ->orderBy('n.title')
       ->execute();
     foreach ($results as $row) {
