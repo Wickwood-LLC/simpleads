@@ -72,11 +72,13 @@ function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
     foreach ($results as $row) {
       $campaigns[$row->nid] = $row->title;
     }
+
     $node = FALSE;
     if (isset($form['#node']) && is_object($form['#node'])) {
       $node = $form['#node'];
     }
-    if (isset($form['field_adcamp_list'])) {
+
+    if (isset($form['field_adcamp_list'][$lang])) {
       $form['field_adcamp_list'][$lang]['#prefix'] = '<div style="display:none;">';
       $form['field_adcamp_list'][$lang]['#suffix'] = '</div>';
       $title = $form['field_adcamp_list'][$lang][0]['#title'];
@@ -94,6 +96,28 @@ function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => $default,
       );
     }
+
+    else {
+      if (isset($form['field_adcamp_list'][LANGUAGE_NONE])) {
+        $form['field_adcamp_list'][LANGUAGE_NONE]['#prefix'] = '<div style="display:none;">';
+        $form['field_adcamp_list'][LANGUAGE_NONE]['#suffix'] = '</div>';
+        $title = $form['field_adcamp_list'][LANGUAGE_NONE][0]['#title'];
+        $description = $form['field_adcamp_list'][LANGUAGE_NONE][0]['#description'];
+        $default = "";
+        if ($node && isset($node->field_adcamp_list[LANGUAGE_NONE]) && !empty($node->field_adcamp_list[LANGUAGE_NONE][0]['safe_value'])) {
+          $default = $node->field_adcamp_list[LANGUAGE_NONE][0]['safe_value'];
+        }
+        $form['campaign'] = array(
+          '#type' => 'select',
+          '#title' => check_plain($title),
+          '#description' => check_plain($description),
+          '#weight' => 9,
+          '#options' => $campaigns,
+          '#default_value' => $default,
+        );
+      }
+    }
+
   }
 }
 
