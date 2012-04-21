@@ -7,7 +7,7 @@
 
 /**
  * Helper function.
- * Returns data array for an adertisement.
+ * Returns data array for an adertisement block.
  *
  * @param int $tid
  * @param int $limit
@@ -23,58 +23,28 @@ function _simpleads_load_ads($tid, $limit) {
   if (is_numeric($limit)) {
 
     $ad_settings = _simpleads_adgroup_settings($tid);
-    $order_delta = isset($ad_settings['ads_order']) ? $ad_settings['ads_order'] : 0;
+    $order_delta = isset($ad_settings['ads_order']) ? $ad_settings['ads_order'] : 'random';
     $queries = module_invoke_all('simpleads_order', $order_delta, $term_ids, $limit);
+
     if (count($queries) > 0) {
       foreach ($queries as $i => $query) {
-        if ($queries[$i] != '') {
-          foreach ($queries[$i] as $row) {
-            module_invoke_all('simpleads_preload', $row->nid);
-            $node = node_load($row->nid);
-            $active = TRUE;
-            if (isset($node->field_ad_status[$node->language])) {
-              if ($node->field_ad_status[$node->language][0]['value'] == 1) {
-                $active = TRUE;
-              }
-              else {
-                $active = FALSE;
-              }
+        foreach ($queries[$i] as $row) {
+          $node = node_load($row->nid);
+          $active = TRUE;
+          if (isset($node->field_ad_status[$node->language])) {
+            if ($node->field_ad_status[$node->language][0]['value'] != 1) {
+              $active = FALSE;
             }
-            if ($node->simpleads_show == 1 && $active) {
-              $result[] = _simpleads_ads_data($node);
-            }
+          }
+          if ($active) {
+            $result[] = _simpleads_ads_data($node);
           }
         }
       }
     }
-    else {
-      $query = db_select('node', 'n');
-      $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
-      $query->fields('n', array('nid'));
-      $query->condition('n.type', 'simpleads');
-      $query->condition('ti.tid', $term_ids, 'IN');
-      $query->orderRandom();
-      $query->range(0, $limit);
-      $results = $query->execute();
 
-      foreach ($results as $row) {
-        module_invoke_all('simpleads_preload', $row->nid);
-        $node = node_load($row->nid);
-        $active = TRUE;
-        if (isset($node->field_ad_status[$node->language])) {
-          if ($node->field_ad_status[$node->language][0]['value'] == 1) {
-            $active = TRUE;
-          }
-          else {
-            $active = FALSE;
-          }
-        }
-        if ($node->simpleads_show == 1 && $active) {
-          $result[] = _simpleads_ads_data($node);
-        }
-      }
-    }
   }
+
   return $result;
 }
 
@@ -84,7 +54,7 @@ function _simpleads_load_ads($tid, $limit) {
  * @param object $node
  */
 function _simpleads_ads_data($node) {
-  if ($node) {
+  if (is_object($node)) {
     $type = 'graphic';
     if (isset($node->field_ad_type[$node->language]) && !empty($node->field_ad_type[$node->language][0]['value'])) {
       $type = $node->field_ad_type[$node->language][0]['value'];
@@ -310,12 +280,6 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
         node_save($node);
       }
     }
-    elseif($now <= $start_time) {
-      $node->status = 0;
-      if ($who == 'cron') {
-        node_save($node);
-      }
-    }
     elseif ($end_time <= $now) {
       $node->status = 0;
       if ($who == 'cron') {
@@ -425,6 +389,7 @@ function _simpleads_ads_listing_query($filter = array()) {
     $query = db_select('node', 'n')->extend('PagerDefault')->limit($filter['adsperpage']);
     $query->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
     $query->fields('n', array('nid'));
+    $query->addTag('node_access');
     $query->condition('n.type', 'simpleads');
     if (isset($filter['adgroup'])) {
       $query->condition('ti.tid', $filter['adgroup']);

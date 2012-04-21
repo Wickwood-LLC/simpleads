@@ -46,6 +46,7 @@ function _simpleads_campaign_listing() {
     $query->fields('l', array('field_adcamp_list_value'));
     $query->condition('n.type', 'simpleads');
     $query->condition('l.field_adcamp_list_value', $record->nid);
+    $query->addTag('node_access');
     $count = $query->countQuery()->execute()->fetchField();
 
     $node = node_load($record->nid);
@@ -120,6 +121,10 @@ function _simpleads_campaign_details($nid) {
     $campaign_information[] = '<div><em>' . t('The ad remains in Active state until it reaches the number of impressions, clicks or the number of days, whichever comes first.') . '</em></div>';
     $campaign_information[] = '<hr>';
 
+    if (isset($campaign->field_adcamp_start[$campaign->language]) && !empty($campaign->field_adcamp_start[$campaign->language][0]['safe_value'])) {
+      $campaign_information[] = t('Started on !date', array('!date' => '<strong>' . $campaign->field_adcamp_start[$campaign->language][0]['safe_value'] . '</strong>'));
+    }
+
     if (isset($campaign->field_adcamp_impression[$campaign->language]) && $campaign->field_adcamp_impression[$campaign->language][0]['value'] == 1) {
       if (isset($campaign->field_adcamp_impressions[$campaign->language]) && !empty($campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'])) {
         $campaign_information[] = '<div>' . t('Impressions limit: !num', array('!num' => '<strong>' . $campaign->field_adcamp_impressions[$campaign->language][0]['safe_value'] . '</strong>')) . '</div>';
@@ -143,6 +148,7 @@ function _simpleads_campaign_details($nid) {
     $query->fields('l', array('field_adcamp_list_value'));
     $query->condition('n.type', 'simpleads');
     $query->condition('l.field_adcamp_list_value', $campaign->nid);
+    $query->addTag('node_access');
     $query->orderBy('n.changed', 'DESC');
     $results = $query->execute();
 

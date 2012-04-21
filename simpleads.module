@@ -210,9 +210,9 @@ function simpleads_taxonomy_term_delete($term) {
  */
 function simpleads_block_info() {
   $blocks = array();
-  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
-  while ($adblock = $all_blocks->fetchAssoc()) {
-    $data = unserialize($adblock['settings']);
+  $result = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  foreach ($result as $block) {
+    $data = unserialize($block->settings);
     $blocks[$data['block_delta']] = array(
       'info' => t('Advertisement Block: @name', array('@name' => $data['block_info'])),
       'cache' => DRUPAL_NO_CACHE,
@@ -225,15 +225,15 @@ function simpleads_block_info() {
  * Implements hook_block_view().
  */
 function simpleads_block_view($delta = '') {
-  $block = array();
-  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
-  while ($adblock = $all_blocks->fetchAssoc()) {
-    $data = unserialize($adblock['settings']);
+  $blocks = array();
+  $result = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  foreach ($result as $block) {
+    $data = unserialize($block->settings);
     if ($data['block_delta'] == $delta) {
-      $block = array(
+      $blocks = array(
         'subject' => check_plain($data['block_subject']),
         'content' => theme('simpleads_block', array(
-          'tid' => $adblock['tid'],
+          'tid' => $block->tid,
           'ads_limit' => $data['ads_limit'],
           'ads_page' => $data['ads_page'],
           'ads_width' => $data['ads_width'],
@@ -242,7 +242,7 @@ function simpleads_block_view($delta = '') {
       );
     }
   }
-  return $block;
+  return $blocks;
 }
 
 /**
@@ -257,9 +257,9 @@ function simpleads_block_configure($delta = '') {
     $options[$i] = $i;
   }
 
-  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
-  while ($adblock = $all_blocks->fetchAssoc()) {
-    $data = unserialize($adblock['settings']);
+  $result = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  foreach ($result as $block) {
+    $data = unserialize($block->settings);
     if ($data['block_delta'] == $delta) {
       $form['ads_limit'] = array(
         '#type' => 'select',
@@ -320,10 +320,12 @@ function simpleads_block_configure($delta = '') {
  */
 function simpleads_block_save($delta = '', $edit = array()) {
 
-  $all_blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
-  while ($adblock = $all_blocks->fetchAssoc()) {
-    $data = unserialize($adblock['settings']);
+  $blocks = db_select('simpleads_blocks', 'sb')->fields('sb')->execute();
+  foreach ($blocks as $block) {
+    $data = unserialize($block->settings);
+
     if ($data['block_delta'] == $delta) {
+
       $data['ads_limit'] = $edit['ads_limit'];
       $data['ads_page'] = $edit['ads_page'];
       $data['ads_width'] = $edit['ads_width'];
@@ -336,9 +338,10 @@ function simpleads_block_save($delta = '', $edit = array()) {
       ->fields(array(
         'settings' => serialize($data),
       ))
-      ->condition('tid', $adblock['tid'])
+      ->condition('tid', $block->tid)
       ->execute();
     }
+
   }
 }
 
@@ -554,7 +557,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->addTag('node_access');
     return $query->execute();
   }
-  if ($delta == 'order_created_desc' || $delta == 1) {
+  if ($delta == 'order_created_desc') {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
@@ -566,7 +569,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->addTag('node_access');
     return $query->execute();
   }
-  if ($delta == 'order_modified_desc' || $delta == 2) {
+  if ($delta == 'order_modified_desc') {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
@@ -578,7 +581,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
     $query->addTag('node_access');
     return $query->execute();
   }
-  if ($delta == 'order_title_asc' || $delta == 3) {
+  if ($delta == 'order_title_asc') {
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
     $query->fields('n', array('nid'));
@@ -607,11 +610,19 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
 }
 
 /**
- * Implements hook_node_load().
+ * Implements hook_cron().
  */
-function simpleads_node_load($nodes, $types) {
-  foreach ($nodes as $i => $node) {
-    // Integartion with Domain Access module.
+function simpleads_cron() {
+
+  $ads = db_select('node', 'n')->fields('n')
+  ->condition('n.type', 'simpleads')
+  ->execute();
+
+  foreach ($ads as $ad) {
+    $node = node_load($ad->nid);
+    _simpleads_activate_deactive_ad($node);
+  }
+}    // Integartion with Domain Access module.
     if (module_exists('domain')) {
       if ($node->type == 'simpleads') {
         $_domain = domain_get_domain();
