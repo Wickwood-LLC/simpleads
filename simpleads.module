@@ -622,38 +622,4 @@ function simpleads_cron() {
     $node = node_load($ad->nid);
     _simpleads_activate_deactive_ad($node);
   }
-}    // Integartion with Domain Access module.
-    if (module_exists('domain')) {
-      if ($node->type == 'simpleads') {
-        $_domain = domain_get_domain();
-        $did = ($_domain['domain_id'] == '') ? 0 : $_domain['domain_id'];
-        $show = 0;
-        foreach ($node->domains as $gid) {
-          ($gid == -1) ? $key = 0 : $key = $gid;
-          $domain = domain_lookup($key);
-          if ($domain['domain_id'] == $did && in_array(-1, $node->domains)) $show = 1;
-          elseif ($domain['domain_id'] == $did) $show = 1;
-        }
-        $node->simpleads_show = $show;
-      }
-    }
-    else {
-      $node->simpleads_show = 1;
-    }
-  }
-}
-
-/**
- * Implements hook_cron().
- */
-function simpleads_cron() {
-
-  $ads = db_select('node', 'n')->fields('n')
-  ->condition('n.type', 'simpleads')
-  ->execute();
-
-  foreach ($ads as $ad) {
-    $node = node_load($ad->nid);
-    _simpleads_activate_deactive_ad($node);
-  }
 }

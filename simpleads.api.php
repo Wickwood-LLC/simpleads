@@ -81,17 +81,4 @@ function hook_simpleads_ad_click($op, $node) {}
  *
  * @param object $node
  */
-function hook_simpleads_ad_impression($op, $node) {}}
-
-/**
- * Ad Impressed.
- *
- * @param string $op
- * - insert
- * - delete
- *
- * @param object $node
- */
-function hook_simpleads_ad_impression($op, $node) {} if ($op == 'insert') {}
-  if ($op == 'delete') {}
-}
+function hook_simpleads_ad_impression($op, $node) {}
