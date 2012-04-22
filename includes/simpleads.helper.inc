@@ -360,7 +360,7 @@ function _simpleads_stats_info($node, $op = 'list') {
   if ($hook = module_invoke_all('simpleads_stats_info', $node, $op)) {
     if (is_array($hook) && !empty($hook)) {
       foreach ($hook as $data) {
-          $result[] = '<div class="stat-item">' . $data . '</div>';
+        $result[] = '<div class="stat-item">' . $data . '</div>';
       }
       return '<div class="simpleads-stat-' . $op . '">' . join("", $result) . '</div>';
     }

@@ -506,7 +506,14 @@ function simpleads_simpleads_stats_info($node, $op) {
     if ($days_left && $days_left > 0) {
       $days_left_str = ', ' . format_plural($days_left, '1 day left.', '@count days left.');
     }
-    return array(_simpleads_statuses($node) . ' (' . $activity . ')' . $days_left_str);
+    // Domain module information (if available).
+    $domain_module = "";
+    if (module_exists('domain')) {
+      if (isset($node->subdomains) && count($node->subdomains)) {
+        $domain_module = t('Published on !list', array('!list' => join(", ", $node->subdomains)));
+      }
+    }
+    return array(_simpleads_statuses($node) . ' (' . $activity . ')' . $days_left_str, $domain_module);
   }
 
   if ($op == 'ad_operations') {
