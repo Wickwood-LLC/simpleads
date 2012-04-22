@@ -1,6 +1,5 @@
 > Module Name: SimpleAds
 > Author: Minnur Yunusov <minnur.yunusov@gmail.com>
-> The project has been sponsored by Urban Insight.
 
 ---
 
@@ -51,6 +50,13 @@ Video Filter module and enable WYSIWYG plugin.
 
 - Support Flash Ads. 
 Upload SWF file and it will automatically show up in your block.
+
+CAMPAIGNS
+
+- By clicks
+- By impressions
+- By days
+- All 3 options (whichever comes first)
 
 CONFIGURATION:
 
