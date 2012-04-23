@@ -363,7 +363,7 @@ function simpleads_campaigns_install() {
     'entity_type' => 'node',
     'bundle' => 'simpleads_campaign',
     'label' => $t('Start date'),
-    'description' => $t('Allowed date formats: now, tomorrow, next week, 10 September 2011, +1 day, +1 week, +1 year, +1 week 2 days 4 hours 2 seconds, next Monday, last Friday, mm/dd/yyyy hh:ss am/pm'),
+    'description' => $t('Allowed date formats: now, tomorrow, next week, 10 September 2011, +1 day, +1 week, +1 year, +1 week 2 days 4 hours 2 seconds, next Monday, last Friday, mm/dd/yyyy hh:mm am/pm'),
     'required' => TRUE,
     'widget' => array(
       'type' => 'text_textfield',
