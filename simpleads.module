@@ -386,9 +386,18 @@ function _simpleads_redirect($nid) {
   if (is_numeric($nid)) {
     $node = node_load($nid);
     $url = "";
+
+    $default_message = t("You have been redirected here because you have permission to edit ads.
+      Please log out from the size or open the site in different browser if you wish to test that the ad url is correct.");
+    $message = variable_get('simpleads_redirect_message', $default_message);
+    $show_message = variable_get('simpleads_redirect_message_show', TRUE);
+
     if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
       $url = $node->field_ad_url[$node->language][0]['value'];
       if (user_access('administer nodes') || user_access('access ad node')) {
+        if ($show_message) {
+          drupal_set_message($message, 'warning');
+        }
         drupal_goto('node/' . $node->nid);
       }
       else {
