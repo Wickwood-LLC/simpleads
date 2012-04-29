@@ -388,7 +388,7 @@ function _simpleads_redirect($nid) {
     $url = "";
 
     $default_message = t("You have been redirected here because you have permission to edit ads.
-      Please log out from the size or open the site in different browser if you wish to test that the ad url is correct.");
+      Please log out from the site or open the site in different browser if you wish to test that the ad redirection is correct.");
     $message = variable_get('simpleads_redirect_message', $default_message);
     $show_message = variable_get('simpleads_redirect_message_show', TRUE);
 
