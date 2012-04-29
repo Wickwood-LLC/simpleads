@@ -54,6 +54,7 @@ function _simpleads_load_ads($tid, $limit) {
  * @param object $node
  */
 function _simpleads_ads_data($node) {
+  $data = &drupal_static(__FUNCTION__);
   if (is_object($node)) {
     $type = 'graphic';
     if (isset($node->field_ad_type[$node->language]) && !empty($node->field_ad_type[$node->language][0]['value'])) {
@@ -91,7 +92,7 @@ function _simpleads_ads_data($node) {
       $target = FALSE;
     }
 
-    return array(
+    $data = array(
       'type' => $type,
       'url' => url('simpleads/redirect/' . $node->nid, array('absolute' => TRUE)),
       'destination_url' => $destination_url,
@@ -105,6 +106,8 @@ function _simpleads_ads_data($node) {
       'text_format' => $text_format,
       'flash' => $flash,
     );
+    drupal_alter('simpleads', $data);
+    return $data;
   }
 }
 

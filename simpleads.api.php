@@ -62,6 +62,13 @@ function hook_simpleads_stats_info($node, $op) {
 function hook_simpleads_status_change($node, $status = NULL) {}
 
 /**
+ * Alter SimpleAd output.
+ *
+ * @param array $data
+ */
+function hook_simpleads_alter(&$data) {}
+
+/**
  * Ad Clicked.
  *
  * @param string $op
