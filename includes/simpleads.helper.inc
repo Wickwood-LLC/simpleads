@@ -231,11 +231,7 @@ function _simpleads_delete_impression($node) {
  */
 function _simpleads_increase_impression($node) {
   global $user;
-  if (user_access('count ad impressions')) {
-    if ($user->uid != 1 && !_simpleads_bot_detect()) {
-      _simpleads_save_impression($node);
-    }
-  }
+  _simpleads_save_impression($node);
 }
 
 /**

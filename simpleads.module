@@ -435,7 +435,10 @@ function _simpleads_new_group_add() {
  * Implements hook_simpleads_ad_click().
  */
 function simpleads_simpleads_ad_click($op, $node) {
-  if ($op == 'insert') {
+  // TRUE means increase/delete impressions using SimpleAds core to control
+  // impressions, otherwise disable core counter.
+  $internal = variable_get('simpleads_clicks_internal', TRUE);
+  if ($op == 'insert' && $internal) {
     db_insert('simpleads_clicks')
     ->fields(array(
       'nid' => $node->nid,
@@ -444,7 +447,7 @@ function simpleads_simpleads_ad_click($op, $node) {
     ))
     ->execute();
   }
-  if ($op == 'delete') {
+  if ($op == 'delete' && $internal) {
     db_delete('simpleads_clicks')->condition('nid', $node->nid)->execute();
   }
 }
@@ -453,16 +456,24 @@ function simpleads_simpleads_ad_click($op, $node) {
  * Implements hook_simpleads_ad_impression().
  */
 function simpleads_simpleads_ad_impression($op, $node) {
-  if ($op == 'insert') {
-    db_insert('simpleads_impressions')
-    ->fields(array(
-      'nid' => $node->nid,
-      'timestamp' => REQUEST_TIME,
-      'ip_address' => ip_address(),
-    ))
-    ->execute();
+  global $user;
+  // TRUE means increase/delete impressions using SimpleAds core to control
+  // clicks, otherwise disable core counter.
+  $internal = variable_get('simpleads_impressions_internal', TRUE);
+  if ($op == 'insert' && $internal) {
+    if (user_access('count ad impressions')) {
+      if ($user->uid != 1 && !_simpleads_bot_detect()) {
+        db_insert('simpleads_impressions')
+          ->fields(array(
+            'nid' => $node->nid,
+            'timestamp' => REQUEST_TIME,
+            'ip_address' => ip_address(),
+          ))
+        ->execute();
+      }
+    }
   }
-  if ($op == 'delete') {
+  if ($op == 'delete' && $internal) {
     db_delete('simpleads_impressions')->condition('nid', $node->nid)->execute();
   }
 }
