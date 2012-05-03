@@ -69,6 +69,14 @@ function hook_simpleads_status_change($node, $status = NULL) {}
 function hook_simpleads_alter(&$data) {}
 
 /**
+ * Redirect ad to its destination
+ *
+ * @param string $url
+ * @param string $delta
+ */
+function hook_simpleads_redirect($url, $delta) {}
+
+/**
  * Ad Clicked.
  *
  * @param string $op

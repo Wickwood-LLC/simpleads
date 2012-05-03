@@ -392,6 +392,8 @@ function _simpleads_redirect($nid) {
     $message = variable_get('simpleads_redirect_message', $default_message);
     $show_message = variable_get('simpleads_redirect_message_show', TRUE);
 
+    $delta = variable_get('simpleads_redirect_delta', 'default');
+
     if (isset($node->field_ad_url[$node->language]) && !empty($node->field_ad_url[$node->language][0]['value'])) {
       $url = $node->field_ad_url[$node->language][0]['value'];
       if (user_access('administer nodes') || user_access('access ad node')) {
@@ -401,11 +403,9 @@ function _simpleads_redirect($nid) {
         drupal_goto('node/' . $node->nid);
       }
       else {
-        if (user_access('count ad clicks') && !_simpleads_bot_detect()) {
-          _simpleads_save_click($node);
-        }
+        _simpleads_save_click($node);
         $url = _simpleads_validate_url($url);
-        header("Location: " . $url);
+        module_invoke_all('simpleads_redirect', $url, $delta);
       }
     }
     else {
@@ -432,6 +432,15 @@ function _simpleads_new_group_add() {
 }
 
 /**
+ * Implements hook_simpleads_redirect().
+ */
+function simpleads_simpleads_redirect($url, $delta) {
+  if ($delta == 'default') {
+    header("Location: " . $url, TRUE, 301);
+  }
+}
+
+/**
  * Implements hook_simpleads_ad_click().
  */
 function simpleads_simpleads_ad_click($op, $node) {
@@ -439,13 +448,15 @@ function simpleads_simpleads_ad_click($op, $node) {
   // impressions, otherwise disable core counter.
   $internal = variable_get('simpleads_clicks_internal', TRUE);
   if ($op == 'insert' && $internal) {
-    db_insert('simpleads_clicks')
-    ->fields(array(
-      'nid' => $node->nid,
-      'timestamp' => REQUEST_TIME,
-      'ip_address' => ip_address(),
-    ))
-    ->execute();
+    if (user_access('count ad clicks') && !_simpleads_bot_detect()) {
+      db_insert('simpleads_clicks')
+        ->fields(array(
+          'nid' => $node->nid,
+          'timestamp' => REQUEST_TIME,
+          'ip_address' => ip_address(),
+      ))
+      ->execute();
+    }
   }
   if ($op == 'delete' && $internal) {
     db_delete('simpleads_clicks')->condition('nid', $node->nid)->execute();
