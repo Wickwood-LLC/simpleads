@@ -12,20 +12,9 @@ include_once("simpleads.updates.inc");
  */
 function simpleads_install() {
 
+  node_types_rebuild();
+
   $t = get_t();
-
-  $type = array(
-    'type' => 'simpleads',
-    'name' => $t('Simple Ad'),
-    'base' => 'node_content',
-    'description' => $t('Advertisement'),
-    'custom' => 1,
-    'modified' => 1,
-    'locked' => 0,
-  );
-
-  $type = node_type_set_defaults($type);
-  node_type_save($type);
 
   $vocabulary = (object) array(
     'name' => $t('Ad Groups'),
@@ -107,7 +96,7 @@ function simpleads_install() {
     ),
     array(
       'field_name' => 'field_ad_text',
-      'type' => 'text',
+      'type' => 'text_long',
       'cardinality' => 1,
       'translatable' => TRUE,
       'locked' => FALSE,
@@ -562,7 +551,6 @@ function simpleads_uninstall() {
   field_delete_field('field_ad_start_date');
   field_delete_field('field_ad_end_date');
   field_delete_field('field_ad_url_taget');
-  node_type_delete('simpleads');
 
   $vid = db_select('taxonomy_vocabulary', 'tv')
   ->fields('tv', array('vid'))

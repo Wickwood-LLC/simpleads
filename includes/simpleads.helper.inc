@@ -425,6 +425,45 @@ function _simpleads_validate_url($url) {
 
 /**
  * Helper function.
+ * Hide field from simpleads node form if some other module disabled,
+ * but not uninstalled yet.
+ * See hook_simpleads_form().
+ *
+ * @param string $field_name
+ */
+function _simpleads_hide_field($field_name) {
+  $fields_to_hide = variable_get('simpleads_form_alter', array());
+  $new_array = array();
+  if (count($fields_to_hide)) {
+    foreach ($fields_to_hide as $field) {
+      $new_array[$field] = $field;
+    }
+  }
+  $new_array[$field_name] = $field_name;
+  variable_set('simpleads_form_alter', $new_array);
+}
+
+/**
+ * Helper function.
+ * Show field in simpleads node form if other module is enabled.
+ * See hook_simpleads_form().
+ *
+ * @param string $field_name
+ */
+function _simpleads_show_field($field_name) {
+  $fields_to_hide = variable_get('simpleads_form_alter', array());
+  $new_array = array();
+  if (count($fields_to_hide)) {
+    foreach ($fields_to_hide as $field) {
+      if ($field != $field_name) {
+        $new_array[$field] = $field;
+      }
+    }
+  }
+  variable_set('simpleads_form_alter', $new_array);
+}
+/**
+ * Helper function.
  */
 function _simpleads_theme_attributes_init($vars) {
   $vars['attributes_array'] = array();

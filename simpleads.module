@@ -11,6 +11,28 @@ include("includes/simpleads.filter.inc");
 include("includes/simpleads.integration.inc");
 
 /**
+ * Implements hook_node_info().
+ */
+function simpleads_node_info() {
+  $t = get_t();
+  return array(
+    'simpleads' => array(
+      'title_label' => $t('Advertisement Title'),
+      'name' => $t('Simple Ad'), 
+      'base' => 'simpleads',
+      'description' => $t('Advertisement'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form().
+ */
+function simpleads_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
  * Implements hook_menu().
  */
 function simpleads_menu() {
@@ -437,6 +459,21 @@ function _simpleads_new_group_add() {
 function simpleads_simpleads_redirect($url, $delta) {
   if ($delta == 'default') {
     header("Location: " . $url, TRUE, 301);
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function simpleads_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'simpleads_node_form') {
+    // Hide fields. See simpleads.helper.inc file
+    $fields_to_hide = variable_get('simpleads_form_alter', array());
+    if (count($fields_to_hide)) {
+      foreach ($fields_to_hide as $field) {
+        unset($form[$field]);
+      }
+    }
   }
 }
 
