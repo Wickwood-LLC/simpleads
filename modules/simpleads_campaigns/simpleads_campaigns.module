@@ -15,7 +15,7 @@ function simpleads_campaigns_node_info() {
   return array(
     'simpleads_campaign' => array(
       'title_label' => $t('Campaign Title'),
-      'name' => $t('Simple Ad Campaign'), 
+      'name' => $t('Simple Ad Campaign'),
       'base' => 'simpleads_campaign',
       'description' => $t('Advertisement Campaign'),
     ),
