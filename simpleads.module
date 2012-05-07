@@ -420,7 +420,7 @@ function _simpleads_redirect($nid) {
       $url = $node->field_ad_url[$node->language][0]['value'];
       if (user_access('administer nodes') || user_access('access ad node')) {
         if ($show_message) {
-          drupal_set_message($message, 'warning');
+          drupal_set_message(filter_xss($message), 'warning');
         }
         drupal_goto('node/' . $node->nid);
       }
