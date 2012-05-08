@@ -533,7 +533,7 @@ function simpleads_update_7004(&$sandbox) {
 }
 
 /**
- * Create a new field for Ad status. Disalbe comments on SimpleAds content type.
+ * Create a new field for Ad status. Disable comments in SimpleAds content type.
  */
 function simpleads_update_7005(&$sandbox) {
 
