@@ -609,8 +609,8 @@ function simpleads_simpleads_order_info() {
   if (module_exists('nodequeue')) {
     $qids = nodequeue_get_qids('simpleads');
     foreach ($qids as $row) {
-      $nq = db_select('nodequeue_queue', 'nq')->fields('nq', array('name', 'title'))->condition('nq.qid', $row->qid)->execute()->fetchObject();
-      $delta[$nq->name] = t('Nodequeue: @name', array('@name' => $nq->title));
+      $nq = db_select('nodequeue_queue', 'nq')->fields('nq', array('qid', 'name', 'title'))->condition('nq.qid', $row->qid)->execute()->fetchObject();
+      $delta['nqueue_' . $nq->qid] = t('Nodequeue: @name', array('@name' => $nq->title));
     }
   }
   return $delta;
@@ -654,7 +654,7 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
   if (module_exists('nodequeue')) {
     $qids = nodequeue_get_qids('simpleads');
     foreach ($qids as $row) {
-      if ($delta == 'queue_' . $row->qid) {
+      if ($delta == 'nqueue_' . $row->qid) {
         $query = db_select('nodequeue_nodes', 'nn');
         $query->fields('nn', array('nid'));
         $query->condition('nn.qid', $row->qid);
