@@ -605,6 +605,7 @@ function simpleads_update_7005(&$sandbox) {
   $result = db_select('node', 'n')
     ->fields('n', array('nid'))
     ->condition('n.status', 1)
+    ->condition('n.type', 'simpleads')
     ->execute();
   foreach ($result as $row) {
     $node = node_load($row->nid);
