@@ -81,7 +81,7 @@ function simpleads_campaigns_permission() {
  */
 function simpleads_campaigns_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'simpleads_node_form') {
-    $lang = $form['language']['#value'];
+    $lang = array_key_exists('#value', $form['language']) ? $form['language']['#value'] : $form['language']['#default_value'];
     $campaigns = array(
       '_none' => t('- None -'),
     );
