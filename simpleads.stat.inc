@@ -11,7 +11,8 @@
 function _simpleads_stat_tab($nid) {
   $result = " ";
 
-  $form_after_stats = drupal_render(drupal_get_form('_simpleads_after_stats_form'));
+  $stats_form = drupal_get_form('_simpleads_after_stats_form');
+  $form_after_stats = drupal_render($stats_form);
 
   if (is_numeric($nid)) {
     $node = node_load($nid);
