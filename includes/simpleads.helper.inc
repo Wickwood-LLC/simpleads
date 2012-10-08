@@ -410,7 +410,7 @@ function _simpleads_ads_listing_query($filter = array()) {
 function _simpleads_validate_url($url) {
   if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
     // Allow internal url if user has access to it.
-    if (drupal_valid_path($url)) {
+    if (drupal_valid_path(drupal_get_normal_path($url))) {
       $url = url($url, array('absolute' => TRUE));
     }
     else {
