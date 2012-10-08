@@ -551,6 +551,7 @@ function simpleads_uninstall() {
   field_delete_field('field_ad_start_date');
   field_delete_field('field_ad_end_date');
   field_delete_field('field_ad_url_taget');
+  field_delete_field('field_ad_status');
 
   $vid = db_select('taxonomy_vocabulary', 'tv')
   ->fields('tv', array('vid'))
