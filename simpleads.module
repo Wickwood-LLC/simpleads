@@ -405,6 +405,9 @@ function _simpleads_show_ads($tid, $limit) {
  */
 function _simpleads_redirect($nid) {
   global $user;
+
+  drupal_page_is_cacheable(FALSE);
+
   if (is_numeric($nid)) {
     $node = node_load($nid);
     $url = "";
