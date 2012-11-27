@@ -391,6 +391,7 @@ function _simpleads_access_callback() {
  *   rendered HTML template.
  */
 function _simpleads_show_ads($tid, $limit) {
+  drupal_page_is_cacheable(FALSE);
   if (is_numeric($tid)) {
     $nodes = _simpleads_load_ads($tid, $limit);
     print _simpleads_render_ajax_template($nodes, $tid, $limit);
