@@ -240,7 +240,7 @@ function _simpleads_increase_impression($node) {
  * @return boolean
  */
 function _simpleads_bot_detect() {
-  if (preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
+  if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
     return TRUE;
   }
   else {
