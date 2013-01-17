@@ -149,7 +149,7 @@ function simpleads_permission() {
  * Implements hook_node_access().
  */
 function simpleads_node_access($node, $op, $account) {
-  if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('administer nodes', $account)) {
+  if (isset($node->type) && $node->type == 'simpleads' && $op == 'view' && !user_access('access ad node', $account)) {
     return NODE_ACCESS_DENY;
   }
 }
