@@ -188,6 +188,7 @@ function simpleads_node_presave($node) {
 function simpleads_node_delete($node) {
   _simpleads_delete_click($node);
   _simpleads_delete_impression($node);
+  _simpleads_delete_aggregated($node);
 }
 
 /**

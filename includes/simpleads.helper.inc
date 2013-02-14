@@ -223,6 +223,18 @@ function _simpleads_delete_impression($node) {
 }
 
 /**
+ * Helper procedure.
+ * Deletes aggregates stats.
+ *
+ * @param int $nid
+ */
+function _simpleads_delete_aggregated($node) {
+  db_delete('simpleads_stats')
+  ->condition('nid', $node->nid)
+  ->execute();
+}
+
+/**
  * Helper functon.
  * Increases impressions counter.
  *
