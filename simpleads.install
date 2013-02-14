@@ -538,6 +538,8 @@ function simpleads_install() {
   variable_set('menu_options_simpleads', array());
   variable_set('node_options_simpleads', array());
   variable_set('comment_simpleads', 1);
+
+  node_types_rebuild();
 }
 
 /**
@@ -566,6 +568,8 @@ function simpleads_uninstall() {
   variable_del('menu_options_simpleads');
   variable_del('node_options_simpleads');
   variable_del('comment_simpleads');
+
+  node_types_rebuild();
 }
 
 /**
