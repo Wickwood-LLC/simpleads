@@ -683,4 +683,72 @@ function simpleads_cron() {
     $node = node_load($ad->nid);
     _simpleads_activate_deactive_ad($node);
   }
+
+  $result = db_query("SELECT
+    FROM_UNIXTIME(s.timestamp, '%Y%m%d') AS date,
+    s.nid, COUNT(*) AS all_count,
+    COUNT(DISTINCT s.ip_address) AS unique_count
+  FROM {simpleads_impressions} s
+  GROUP BY date, s.nid");
+
+  $last_impressions_aid = NULL;
+
+  foreach ( $result as $row ) {
+
+    db_insert('simpleads_stats')
+    ->fields(array(
+      'nid' => $row->nid,
+      'date' => $row->date,
+      'clicks' => 0,
+      'clicks_unique' => 0,
+      'impressions' => $row->all_count,
+      'impressions_unique' => $row->unique_count,
+    ))
+    ->execute();
+
+    $last_impressions_aid = $row->aid;
+
+  }
+
+  if ( !is_null($last_impressions_aid) && !empty($last_impressions_aid) ) {
+
+    db_delete('simpleads_impressions')
+    ->condition('aid', $last_impressions_aid, '<=')
+    ->execute();
+
+  }
+
+  $result = db_query("SELECT
+    FROM_UNIXTIME(s.timestamp, '%Y%m%d') as date,
+    s.nid,
+    COUNT(*) as all_count,
+    COUNT(DISTINCT s.ip_address) as unique_count
+  FROM {simpleads_clicks} s
+  GROUP BY date, s.nid");
+
+  $last_clicks_aid = NULL;
+
+  foreach ( $result as $row ) {
+
+    db_update('simpleads_stats')
+    ->fields(array(
+      'clicks' => $row->all_count,
+      'clicks_unique' => $row->unique_count,
+    ))
+    ->condition('date', $row->date)
+    ->condition('nid', $row->nid)
+    ->execute();
+
+    $last_clicks_aid = $row->aid;
+
+  }
+
+  if ( !is_null($last_clicks_aid) && !empty($last_clicks_aid) ) {
+
+    db_delete('simpleads_clicks')
+    ->condition('aid', $last_clicks_aid, '<=')
+    ->execute();
+
+  }
+
 }

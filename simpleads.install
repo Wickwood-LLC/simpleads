@@ -639,6 +639,45 @@ function simpleads_schema() {
     ),
   );
 
+  $schema['simpleads_stats'] = array(
+    'description' => 'Advertisement aggregated stats',
+    'fields' => array(
+      'nid'  => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Advertisement node ID',
+      ),
+      'date' => array(
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Stats day',
+      ),
+      'clicks' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Clicks counter',
+      ),
+      'clicks_unique' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Clicks counter',
+      ),
+      'impressions' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Impressions counter',
+      ),
+      'impressions_unique' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'Impressions counter',
+      ),
+    ),
+    'primary key' => array('nid', 'period'),
+  );
+
   $schema['simpleads_blocks'] = array(
     'description' => 'Stores Ad Blocks',
     'fields' => array(
