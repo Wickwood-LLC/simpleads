@@ -267,19 +267,21 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
     $end_time = $node->field_ad_end_date[$node->language][0]['value'];
   }
 
+  $current_status = _simpleads_get_node_status($node->nid);
+
   $start_time = (int)strtotime($start_time);
   $end_time = (int)strtotime($end_time);
 
   $now = REQUEST_TIME;
 
   if ($start_time != '' && $end_time != '') {
-    if ($now >= $start_time && $end_time > $now) {
+    if ($now >= $start_time && $end_time > $now && $current_status == 0) {
       $node->status = 1;
       if ($who == 'cron') {
         node_save($node);
       }
     }
-    elseif ($end_time <= $now) {
+    elseif ($end_time <= $now && $current_status == 1) {
       $node->status = 0;
       if ($who == 'cron') {
         node_save($node);
@@ -287,7 +289,7 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
     }
   }
   elseif ($start_time == '' && $end_time != '') {
-    if ($end_time <= $now) {
+    if ($end_time <= $now && $current_status == 1) {
       $node->status = 0;
       if ($who == 'cron') {
         node_save($node);
@@ -301,7 +303,7 @@ function _simpleads_activate_deactive_ad($node, $who = 'cron') {
     }
   }
   else {
-    if ($now >= $start_time && $start_time != '') {
+    if ($now >= $start_time && $start_time != '' && $current_status == 0) {
       $node->status = 1;
       if ($who == 'cron') {
         node_save($node);
@@ -477,4 +479,16 @@ function _simpleads_theme_attributes_init($vars) {
     $vars['css_attributes'] = '';
   }
   return $vars;
+}
+
+/**
+ * Check SimpleAds node status
+ */
+function _simpleads_get_node_status($nid) {
+  $node_status = db_select('node', 'n')
+    ->fields('n', array('status'))
+    ->condition('n.nid', $nid)
+    ->execute()
+    ->fetchField();
+  return (int)$node_status;
 }
