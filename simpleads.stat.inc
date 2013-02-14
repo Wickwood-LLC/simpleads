@@ -315,55 +315,53 @@ function _simpleads_get_statistics($table, $nid) {
 
   if ( $table == 'simpleads_clicks' ) {
 
-    $table = 'simpleads_stats';
+    $stats['Yesterday'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Yesterday'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['Last Week'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Last Week'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['Last Month'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Last Month'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['3 Months'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['3 Months'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['6 Months'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['6 Months'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
-
-    $stats['1 year'] = db_select($table, 'sc')
-    ->fields('sc', array('clicks'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('clicks_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['1 year'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
     $stats['All Time'] = db_query("SELECT SUM(sc.clicks) FROM {simpleads_stats} sc WHERE sc.nid = :nid", array(':nid' => $nid))->fetchField() . '/' . db_query("SELECT SUM(sc.clicks_unique) FROM {simpleads_stats} sc WHERE sc.nid = :nid", array(':nid' => $nid))->fetchField();
 
@@ -371,55 +369,53 @@ function _simpleads_get_statistics($table, $nid) {
 
   if ( $table == 'simpleads_impressions' ) {
 
-    $table = 'simpleads_stats';
+    $stats['Yesterday'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Yesterday'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 DAY)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['Last Week'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Last Week'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 WEEK)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['Last Month'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['Last Month'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['3 Months'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['3 Months'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 3 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['6 Months'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
-    $stats['6 Months'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 6 MONTH)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
-
-    $stats['1 year'] = db_select($table, 'sc')
-    ->fields('sc', array('impressions'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)")->condition("sc.nid", $nid)
-    ->execute()->fetchField() . '/' . db_select($table, 'sc')
-    ->fields('sc', array('impressions_unique'))
-    ->where("STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)")->condition("sc.nid", $nid)
-    ->execute()->fetchField();
+    $stats['1 year'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc
+      WHERE STR_TO_DATE(sc.date, '%Y%m%d') <= NOW() AND STR_TO_DATE(sc.date, '%Y%m%d') >= SUBDATE(NOW(), INTERVAL 1 YEAR)
+      AND sc.nid = :nid", array(':nid' => $nid))
+    ->fetchField();
 
     $stats['All Time'] = db_query("SELECT SUM(sc.impressions) FROM {simpleads_stats} sc WHERE sc.nid = :nid", array(':nid' => $nid))->fetchField() . '/' . db_query("SELECT SUM(sc.impressions_unique) FROM {simpleads_stats} sc WHERE sc.nid = :nid", array(':nid' => $nid))->fetchField();
 
