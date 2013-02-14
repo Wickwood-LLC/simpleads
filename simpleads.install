@@ -532,6 +532,8 @@ function simpleads_install() {
 
   user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('count ad impressions', 'count ad clicks'));
 
+  variable_set('simpleads_last_aggregation_time', 0);
+
   // Reset menu, comments and other default options.
   variable_set('menu_options_simpleads', array());
   variable_set('node_options_simpleads', array());
@@ -559,6 +561,7 @@ function simpleads_uninstall() {
   ->execute()
   ->fetchField();
   taxonomy_vocabulary_delete($vid);
+  variable_del('simpleads_last_aggregation_time');
   variable_del('simpleads_filters');
   variable_del('menu_options_simpleads');
   variable_del('node_options_simpleads');
@@ -675,7 +678,7 @@ function simpleads_schema() {
         'description' => 'Impressions counter',
       ),
     ),
-    'primary key' => array('nid', 'period'),
+    'primary key' => array('nid', 'date'),
   );
 
   $schema['simpleads_blocks'] = array(

@@ -660,9 +660,10 @@ function simpleads_update_7006(&$sandbox) {
         'description' => 'Impressions counter',
       ),
     ),
-    'primary key' => array('nid', 'period'),
+    'primary key' => array('nid', 'date'),
   );
 
   db_create_table('simpleads_stats', $schema['simpleads_stats']);
 
+}
 }
