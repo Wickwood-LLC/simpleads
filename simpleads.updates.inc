@@ -666,4 +666,3 @@ function simpleads_update_7006(&$sandbox) {
   db_create_table('simpleads_stats', $schema['simpleads_stats']);
 
 }
-}
