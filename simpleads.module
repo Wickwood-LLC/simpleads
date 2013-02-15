@@ -685,7 +685,7 @@ function simpleads_cron() {
     _simpleads_activate_deactive_ad($node);
   }
 
-  $timestamp = variable_set('simpleads_last_aggregation_time', 0);
+  $timestamp = variable_get('simpleads_last_aggregation_time', 0);
   $time = $timestamp - ( $timestamp  % 86400 );
 
   if ( date( 'm-d-Y', $time ) != date( 'm-d-Y', REQUEST_TIME ) ) {
