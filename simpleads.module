@@ -686,22 +686,23 @@ function simpleads_cron() {
   }
 
   $timestamp = variable_get('simpleads_last_aggregation_time', 0);
-  $time = $timestamp - ( $timestamp  % 86400 );
 
-  if ( date( 'm-d-Y', $time ) != date( 'm-d-Y', REQUEST_TIME ) ) {
+  if ( date( 'm-d-Y', $timestamp ) != date( 'm-d-Y', REQUEST_TIME ) ) {
 
     $result = db_query("SELECT
         FROM_UNIXTIME(s.timestamp, '%Y%m%d') AS date,
         s.nid, COUNT(*) AS all_count,
         COUNT(DISTINCT s.ip_address) AS unique_count
       FROM {simpleads_impressions} s
+      WHERE FROM_UNIXTIME(s.timestamp, '%Y%m%d') != FROM_UNIXTIME(UNIX_TIMESTAMP(), '%Y%m%d')
       GROUP BY date, s.nid");
 
     $nids = array();
 
     foreach ( $result as $row ) {
 
-      db_insert('simpleads_stats')
+      db_merge('simpleads_stats')
+      ->key(array('nid' => $row->nid, 'date' => $row->date))
       ->fields(array(
         'nid' => $row->nid,
         'date' => $row->date,
@@ -724,6 +725,7 @@ function simpleads_cron() {
         COUNT(*) as all_count,
         COUNT(DISTINCT s.ip_address) as unique_count
       FROM {simpleads_clicks} s
+      WHERE FROM_UNIXTIME(s.timestamp, '%Y%m%d') != FROM_UNIXTIME(UNIX_TIMESTAMP(), '%Y%m%d')
       GROUP BY date, s.nid");
 
     foreach ( $result as $row ) {
@@ -745,13 +747,12 @@ function simpleads_cron() {
 
     if ( count($nids) ) {
 
-      db_delete('simpleads_impressions')
-      ->condition('nid', $nids, 'IN')
-      ->execute();
-
-      db_delete('simpleads_clicks')
-      ->condition('nid', $nids, 'IN')
-      ->execute();
+      db_query("DELETE FROM {simpleads_impressions}
+        WHERE nid IN (" . join(', ', $nids) . ")
+          AND FROM_UNIXTIME(timestamp, '%Y%m%d') != FROM_UNIXTIME(UNIX_TIMESTAMP(), '%Y%m%d')");
+      db_query("DELETE FROM {simpleads_clicks}
+        WHERE nid IN (" . join(', ', $nids) . ")
+          AND FROM_UNIXTIME(timestamp, '%Y%m%d') != FROM_UNIXTIME(UNIX_TIMESTAMP(), '%Y%m%d')");
 
     }
 
