@@ -620,7 +620,7 @@ function simpleads_update_7005(&$sandbox) {
 }
 
 /**
- * Create SimpleAds aggregates stats table.
+ * Create SimpleAds aggregated stats table.
  */
 function simpleads_update_7006(&$sandbox) {
 

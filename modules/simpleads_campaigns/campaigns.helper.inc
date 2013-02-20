@@ -156,8 +156,8 @@ function _simpleads_campaigns_complete($campaign_nid, $ad_node = FALSE) {
  * @param int $nid
  */
 function _simpleads_campaigns_count_ad_impressions($timestamp, $nid) {
-  $count = db_query("SELECT SUM(s.impressions_unique) FROM {simpleads_stats} s
-    WHERE s.nid = :nid AND UNIX_TIMESTAMP(STR_TO_DATE(sc.date, '%Y%m%d')) >= :timest", array(':nid' => $nid, ':timest' => $timestamp))
+  $count = db_query("SELECT IFNULL(SUM(s.impressions_unique), 0) FROM {simpleads_stats} s
+    WHERE s.nid = :nid AND UNIX_TIMESTAMP(STR_TO_DATE(s.date, '%Y%m%d')) >= :timest", array(':nid' => $nid, ':timest' => $timestamp))
   ->fetchField();
   return $count;
 }
@@ -170,8 +170,8 @@ function _simpleads_campaigns_count_ad_impressions($timestamp, $nid) {
  * @param int $nid
  */
 function _simpleads_campaigns_count_ad_clicks($timestamp, $nid) {
-  $count = db_query("SELECT SUM(s.clicks_unique) FROM {simpleads_stats} s
-    WHERE s.nid = :nid AND UNIX_TIMESTAMP(STR_TO_DATE(sc.date, '%Y%m%d')) >= :timest", array(':nid' => $nid, ':timest' => $timestamp))
+  $count = db_query("SELECT IFNULL(SUM(s.clicks_unique), 0) FROM {simpleads_stats} s
+    WHERE s.nid = :nid AND UNIX_TIMESTAMP(STR_TO_DATE(s.date, '%Y%m%d')) >= :timest", array(':nid' => $nid, ':timest' => $timestamp))
   ->fetchField();
   return $count;
 }
