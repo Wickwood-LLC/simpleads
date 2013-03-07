@@ -9,12 +9,12 @@
  * array $settings
  * array $image_attributes
  * array $link_attributes
- *
+ * array $image_theme
  */
 ?>
 <div class="simplead-container image-ad <?php if (isset($css_attributes)): print $css_attributes; endif; ?>">
   <?php if (!empty($ad['destination_url'])) : ?>
-    <?php print l(theme('image', $image_attributes), $ad['url'], $link_attributes); ?>
+    <?php print l(theme($image_theme, $image_attributes), $ad['url'], $link_attributes); ?>
   <?php else : ?>
     <?php print theme('image', $image_attributes); ?>
   <?php endif; ?>
