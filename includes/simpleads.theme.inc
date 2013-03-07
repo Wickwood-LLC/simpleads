@@ -97,6 +97,14 @@ function simpleads_preprocess_simpleads_img_element(&$vars) {
   if ($vars['ad']['target'] && !user_access('administer nodes')) {
     $link_attributes['attributes']['target'] = '_blank';
   }
+  
+  $config = variable_get('simpleads_imagestyle', array());
+  if (isset($config[$vars['settings']['block_delta']]) && $config[$vars['settings']['block_delta']] != 'none') {
+  	$vars['image_theme'] = 'image_style';
+  	$image_attributes['style_name'] = $config[$vars['settings']['block_delta']];
+  } else {
+  	$vars['image_theme'] = 'image';
+  }
 
   $vars['link_attributes'] = $link_attributes;
   $vars['image_attributes'] = $image_attributes;

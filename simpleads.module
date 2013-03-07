@@ -333,6 +333,19 @@ function simpleads_block_configure($delta = '') {
         '#description' => t('Delay value is in seconds'),
         '#suffix' => '</div>',
       );
+      
+      $values = variable_get('simpleads_imagestyle', array());
+      $styles = image_styles();
+      $style_options = array('none' => t("None"));
+      foreach ($styles as $sid => $params)
+      	$style_options[$sid] = $params['name'];
+      	$form['image_style'] = array(
+      		'#type' => 'select',
+      		'#title' => t("Style"),
+      		'#options' => $style_options,
+      		'#default_value' => (isset($values[$delta])) ? $values[$delta] : 'none',
+      	);
+
     }
   }
   return $form;
@@ -363,6 +376,10 @@ function simpleads_block_save($delta = '', $edit = array()) {
       ))
       ->condition('tid', $block->tid)
       ->execute();
+      
+      $simpleads_imagestyle = variable_get('simpleads_imagestyle', array());
+      $simpleads_imagestyle[$delta] = $edit['image_style'];
+      variable_set('simpleads_imagestyle', $simpleads_imagestyle);
     }
 
   }
