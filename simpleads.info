@@ -1,8 +1,8 @@
 name = "SimpleAds"
-description = "Advertisements"
+description = "Advertisements. Patched by WWM to allow Image style select in simpleads block configuration."
 package = "SimpleAds"
 core = "7.x"
-
+version = 7.x-dev-02-20-2013-wwm
 scripts[] = simpleads.js
 stylesheets[all][] = simpleads.css
 

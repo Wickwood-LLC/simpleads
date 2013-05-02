@@ -87,6 +87,19 @@ function _simpleads_ads_data($node) {
         $text_ad = strip_tags($node->field_ad_text[$node->language][0]['value']);
       }
     }
+    
+    $ad_extra_text = "";
+    $text_format = "plain_text";
+    
+    if (isset($node->field_ad_extra_text[$node->language]) && !empty($node->field_ad_extra_text[$node->language][0]['value'])) {
+      
+      if (isset($node->field_ad_extra_text[$node->language]) && $node->field_ad_extra_text[$node->language][0]['format'] != $text_format) {
+        $text_format = $node->field_ad_extra_text[$node->language][0]['format'];
+        $ad_extra_text = check_markup($node->field_ad_extra_text[$node->language][0]['value'], $text_format);
+      }
+      else {
+        $ad_extra_text = strip_tags($node->field_ad_extra_text[$node->language][0]['value']);
+      }
     $target = TRUE;
     if (isset($node->field_ad_url_taget[$node->language]) && $node->field_ad_url_taget[$node->language][0]['value'] == 0) {
       $target = FALSE;
@@ -105,6 +118,7 @@ function _simpleads_ads_data($node) {
       'text' => $text_ad,
       'text_format' => $text_format,
       'flash' => $flash,
+      'ad_extra_text' => $ad_extra_text,
     );
     drupal_alter('simpleads', $data);
     return $data;
