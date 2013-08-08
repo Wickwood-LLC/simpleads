@@ -1,8 +1,8 @@
 name = "SimpleAds"
-description = "Advertisements. Patched by WWM to allow Image style select in simpleads block configuration."
+description = "Advertisements. WWM applied patch from http://drupal.org/node/1928156#comment-7145266 to allow Image style select in simpleads block configuration. Also added extra text field for image ads."
 package = "SimpleAds"
 core = "7.x"
-version = 7.x-dev-02-20-2013-wwm
+version = 7.x-dev-wwm
 scripts[] = simpleads.js
 stylesheets[all][] = simpleads.css
 
