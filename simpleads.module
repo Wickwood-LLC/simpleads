@@ -645,8 +645,11 @@ function simpleads_simpleads_order($delta, $term_ids, $limit) {
 
   $query = db_select('node', 'n');
   $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+  $query->join('field_data_field_ad_status', 'f', 'n.nid = f.entity_id');
   $query->fields('n', array('nid'));
   $query->condition('n.type', 'simpleads');
+  $query->condition('f.entity_type', 'node');
+  $query->condition('f.field_ad_status_value', 1);
   $query->condition('ti.tid', $term_ids, 'IN');
   $query->condition('n.status', 1);
   $query->range(0, $limit);
