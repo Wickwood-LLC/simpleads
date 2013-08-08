@@ -100,6 +100,7 @@ function _simpleads_ads_data($node) {
       else {
         $ad_extra_text = strip_tags($node->field_ad_extra_text[$node->language][0]['value']);
       }
+    }
     $target = TRUE;
     if (isset($node->field_ad_url_taget[$node->language]) && $node->field_ad_url_taget[$node->language][0]['value'] == 0) {
       $target = FALSE;
