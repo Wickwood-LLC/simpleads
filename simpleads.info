@@ -2,7 +2,7 @@ name = "SimpleAds"
 description = "Advertisements. WWM applied patch from http://drupal.org/node/1928156#comment-7145266 to allow Image style select in simpleads block configuration. Also added extra text field for image ads."
 package = "SimpleAds"
 core = "7.x"
-version = 7.x-dev-wwm
+
 scripts[] = simpleads.js
 stylesheets[all][] = simpleads.css
 
@@ -16,3 +16,6 @@ dependencies[] = field_sql_storage
 dependencies[] = file
 dependencies[] = image
 dependencies[] = text
+
+version = "7.x-1.9"
+project = "simpleads"
