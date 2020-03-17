@@ -45,7 +45,9 @@
 </div>
 <div class="adslist">
   <script type="text/javascript">
-    _simpelads_load('.simpleads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
+    if (typeof _simpelads_load == 'function') {
+      _simpelads_load('.simpleads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
+    }
   </script>
   <?php /* If you would like to modify class attrbiute, please don't forget to update
     the first argument in function call above (_simpleads_load(...)).
